@@ -55,6 +55,7 @@ CREATE TABLE t_company_info
 (
     id            INT                                    NOT NULL AUTO_INCREMENT COMMENT 'id',
     com_id        VARCHAR(16)  default ''                NOT NULL COMMENT '企业ID',
+    com_phone     VARCHAR(16)  default ''                NOT NULL COMMENT '企业手机号，用于登录',
     com_name      VARCHAR(128) default ''                NOT NULL COMMENT '企业名称',
     com_intro     VARCHAR(255) default ''                NOT NULL COMMENT '企业介绍',
     com_address   VARCHAR(128) default ''                NOT NULL COMMENT '企业地址',
