@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * @author hongxiaobin
  */
-@SpringBootApplication(exclude = RedisAutoConfiguration.class)
+@SpringBootApplication()
 @MapperScan("com.bin.bin_fresh_recruit_backend.mapper")
 @EnableScheduling
 public class BinFreshRecruitBackendApplication {
