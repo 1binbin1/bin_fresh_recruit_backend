@@ -13,14 +13,19 @@ import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.PASSWORD_SALT;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
 /**
  * @author hongxiaobin
@@ -28,6 +33,7 @@ import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.PASSWORD
  * @createDate 2023-11-04 15:34:12
  */
 @Service
+@Slf4j
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         implements AccountService {
     @Resource
@@ -40,6 +46,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     private CompanyInfoMapper companyInfoMapper;
 
     @Override
+    @Transactional
     public AccountInfoVo accountRegister(String phone, String password, String checkPassword, Integer role) {
         // 参数校验
         String pattern = "^1[3456789]\\d{9}$";
@@ -60,28 +67,26 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
         String id = IdUtils.getId(role);
         // 保存账号
+        int insertResult = 0;
+        boolean saveResult;
         Account account = new Account();
         account.setAId(id);
         account.setARole(role);
         account.setAPhone(phone);
         account.setAPassword(digestPassword);
-        boolean saveResult = this.save(account);
-        if (!saveResult) {
-            throw new BusinessException(ErrorCode.INSERT_ERROR);
-        }
-        int insertResult = 0;
+        saveResult = this.save(account);
         // 保存信息
         switch (role) {
-            case 0:
+            case SCHOOL_ROLE:
                 break;
-            case 1:
+            case FRESH_ROLE:
                 // 应届生
                 FreshUserInfo freshUserInfo = new FreshUserInfo();
                 freshUserInfo.setUserId(id);
                 freshUserInfo.setUserPhone(phone);
                 insertResult = freshUserInfoMapper.insert(freshUserInfo);
                 break;
-            case 2:
+            case COMPANY_ROLE:
                 // 企业
                 CompanyInfo companyInfo = new CompanyInfo();
                 companyInfo.setComId(id);
@@ -91,10 +96,34 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             default:
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "角色代码错误");
         }
-        if (insertResult == 0) {
+        if (insertResult == 0 || saveResult) {
             throw new BusinessException(ErrorCode.INSERT_ERROR);
         }
         return new AccountInfoVo(id, phone);
+    }
+
+    @Override
+    public AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request) {
+        // 参数校验
+        String pattern = "^1[3456789]\\d{9}$";
+        if (!Pattern.matches(pattern, phone)) {
+            throw new BusinessException(ErrorCode.PHONE_ERROR);
+        }
+        String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_phone", phone);
+        accountQueryWrapper.eq("a_password", digestPassword);
+        accountQueryWrapper.eq("a_role", role);
+        Account account = accountMapper.selectOne(accountQueryWrapper);
+        if (account == null) {
+            log.info("User login error,phone password or role error");
+            throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+        }
+        // 记录登录态
+        AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone());
+        HttpSession session = request.getSession();
+        session.setAttribute(USER_LOGIN_STATE, accountInfoVo);
+        return accountInfoVo;
     }
 }
 

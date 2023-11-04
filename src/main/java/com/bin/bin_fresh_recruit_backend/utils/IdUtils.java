@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
+
 /**
  * UUID生成
  *
@@ -26,13 +28,13 @@ public class IdUtils {
         String date = sdf.format(new Date());
         String id;
         switch (role) {
-            case 0:
+            case SCHOOL_ROLE:
                 id = "O" + uuidSub + date;
                 break;
-            case 1:
+            case FRESH_ROLE:
                 id = "C" + uuidSub + date;
                 break;
-            case 2:
+            case COMPANY_ROLE:
                 id = "B" + uuidSub + date;
                 break;
             default:

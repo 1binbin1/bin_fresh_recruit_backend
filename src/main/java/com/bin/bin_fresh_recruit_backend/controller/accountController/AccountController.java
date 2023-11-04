@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 
 /**
  * 账号相关控制器
@@ -49,6 +52,9 @@ public class AccountController {
         if (StringUtils.isAnyBlank(phone, password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
+            throw new BusinessException(ErrorCode.ROLE_ERROR);
+        }
         AccountInfoVo accountInfoVo = accountService.accountRegister(phone, password, checkPassword, role);
         return ResultUtils.success(accountInfoVo);
     }
@@ -60,8 +66,22 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/login")
-    public BaseResponse<AccountInfoVo> accountLogin(@RequestBody AccountLoginRequest accountLoginRequest) {
-        return null;
+    public BaseResponse<AccountInfoVo> accountLogin(@RequestBody AccountLoginRequest accountLoginRequest,
+                                                    HttpServletRequest request) {
+        if (accountLoginRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        String phone = accountLoginRequest.getPhone();
+        Integer role = accountLoginRequest.getRole();
+        String password = accountLoginRequest.getPassword();
+        if (StringUtils.isAnyBlank(phone, password)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
+            throw new BusinessException(ErrorCode.ROLE_ERROR);
+        }
+        AccountInfoVo accountInfoVo = accountService.accountLogin(phone, password, role, request);
+        return ResultUtils.success(accountInfoVo);
     }
 
     /**

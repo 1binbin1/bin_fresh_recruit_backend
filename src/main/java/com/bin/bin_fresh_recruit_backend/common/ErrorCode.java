@@ -15,6 +15,8 @@ public enum ErrorCode {
     PHONE_ERROR(40003, "手机号格式错误"),
     PASSWORD_ERROR(40004, "两次密码输入不相同"),
     ACCOUNT_ERROR(40005, "账号已存在"),
+    ACCOUNTNOT_ERROR(40005, "账号不存在"),
+    ROLE_ERROR(40005, "角色代码错误"),
     INSERT_ERROR(40006, "插入数据异常"),
     ;
 
