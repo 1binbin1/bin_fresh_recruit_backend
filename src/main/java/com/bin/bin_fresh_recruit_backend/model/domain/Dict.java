@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 数据字典
+ * @author hongxiaobin
  * @TableName t_dict
  */
 @TableName(value ="t_dict")

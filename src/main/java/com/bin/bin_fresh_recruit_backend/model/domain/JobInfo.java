@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 岗位信息表
+ * @author hongxiaobin
  * @TableName t_job_info
  */
 @TableName(value ="t_job_info")

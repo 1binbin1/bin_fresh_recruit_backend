@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 应届生岗位意向表
+ * @author hongxiaobin
  * @TableName t_job_purpose
  */
 @TableName(value ="t_job_purpose")

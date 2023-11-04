@@ -1,5 +1,7 @@
 package com.bin.bin_fresh_recruit_backend.common;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 /**
@@ -8,6 +10,7 @@ import java.io.Serializable;
  * @Author: hongxiaobin
  * @Time: 2023/11/4 16:04
  */
+@Data
 public class BaseResponse<T> implements Serializable {
     /**
      * 序列化ID
@@ -24,16 +27,16 @@ public class BaseResponse<T> implements Serializable {
     /**
      * 响应反馈
      */
-    private String message;
+    private String msg;
 
     /**
      * 响应数据
      */
     private T data;
 
-    public BaseResponse(int code, String message, T data) {
+    public BaseResponse(int code, String msg, T data) {
         this.code = code;
-        this.message = message;
+        this.msg = msg;
         this.data = data;
     }
 
@@ -45,7 +48,7 @@ public class BaseResponse<T> implements Serializable {
         this(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
-    public BaseResponse(ErrorCode errorCode, String message) {
-        this(errorCode.getCode(), message, null);
+    public BaseResponse(ErrorCode errorCode, String msg) {
+        this(errorCode.getCode(), msg, null);
     }
 }

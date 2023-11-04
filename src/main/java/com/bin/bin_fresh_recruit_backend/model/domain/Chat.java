@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 聊天记录表
+ * @author hongxiaobin
  * @TableName t_chat
  */
 @TableName(value ="t_chat")

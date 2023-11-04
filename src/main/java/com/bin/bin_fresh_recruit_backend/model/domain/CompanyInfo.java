@@ -4,17 +4,23 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 企业信息表
+ *
+ * @author hongxiaobin
  * @TableName t_company_info
  */
-@TableName(value ="t_company_info")
+@TableName(value = "t_company_info")
 @Data
 public class CompanyInfo implements Serializable {
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -32,6 +38,12 @@ public class CompanyInfo implements Serializable {
      */
     @TableField(value = "com_name")
     private String comName;
+
+    /**
+     * 手机号
+     */
+    @TableField(value = "com_phone")
+    private String comPhone;
 
     /**
      * 企业介绍
@@ -92,7 +104,4 @@ public class CompanyInfo implements Serializable {
      */
     @TableField(value = "is_delete")
     private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

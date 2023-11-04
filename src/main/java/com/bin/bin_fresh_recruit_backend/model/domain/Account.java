@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 账号信息表
+ * @author hongxiaobin
  * @TableName t_account
  */
 @TableName(value ="t_account")
@@ -26,6 +27,12 @@ public class Account implements Serializable {
      */
     @TableField(value = "a_id")
     private String aId;
+
+    /**
+     * 手机号
+     */
+    @TableField(value = "a_phone")
+    private String aPhone;
 
     /**
      * 密码
