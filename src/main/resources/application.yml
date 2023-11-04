@@ -1,2 +1,45 @@
+spring:
+  profiles:
+    #  Indicate the environment
+    active: dev
+  application:
+    #  projectName
+    name: bin_fresh_recruit_backend
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/db_bin_fresh_job?serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+
+  #    Redis配置
+#  redis:
+#    port: 6379
+#    host: 192.168.56.133
+#    password: Abin21428!!
+#    database: 0
+#    redissonDataBase: 2
+
+  #    Swagger-UI starts 404 problem, add interception
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
 server:
   port: 8081
+  #  Uniform request prefix
+  servlet:
+    context-path: /bin_fresh_recruit
+
+# Automatic hump switching is prohibited
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    #    Open database query log
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # Automatically skip data that has been logically deleted
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # Entity field name for global logical deletion (since 3.3.0, step 2 can be ignored after configuration)
+      logic-delete-value: 1 # Logical deleted value (default is 1)
+      logic-not-delete-value: 0 # Logical undeleted value (default is 0)

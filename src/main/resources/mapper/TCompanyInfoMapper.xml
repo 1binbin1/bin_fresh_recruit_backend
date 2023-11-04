@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bin.bin_fresh_recruit_backend.mapper.TCompanyInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.bin.bin_fresh_recruit_backend.model.domain.TCompanyInfo">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="comId" column="com_id" jdbcType="VARCHAR"/>
+            <result property="comName" column="com_name" jdbcType="VARCHAR"/>
+            <result property="comIntro" column="com_intro" jdbcType="VARCHAR"/>
+            <result property="comAddress" column="com_address" jdbcType="VARCHAR"/>
+            <result property="comNum" column="com_num" jdbcType="VARCHAR"/>
+            <result property="comType" column="com_type" jdbcType="VARCHAR"/>
+            <result property="comWorkTime" column="com_work_time" jdbcType="VARCHAR"/>
+            <result property="comSetTime" column="com_set_time" jdbcType="VARCHAR"/>
+            <result property="comWelfare" column="com_welfare" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,com_id,com_name,
+        com_intro,com_address,com_num,
+        com_type,com_work_time,com_set_time,
+        com_welfare,create_time,update_time,
+        is_delete
+    </sql>
+</mapper>

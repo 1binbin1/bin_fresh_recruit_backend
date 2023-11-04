@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bin.bin_fresh_recruit_backend.mapper.TFreshUserInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.bin.bin_fresh_recruit_backend.model.domain.TFreshUserInfo">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+            <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+            <result property="userSex" column="user_sex" jdbcType="INTEGER"/>
+            <result property="userPhone" column="user_phone" jdbcType="VARCHAR"/>
+            <result property="userEmail" column="user_email" jdbcType="VARCHAR"/>
+            <result property="userSchool" column="user_school" jdbcType="VARCHAR"/>
+            <result property="userMajor" column="user_major" jdbcType="VARCHAR"/>
+            <result property="userYear" column="user_year" jdbcType="VARCHAR"/>
+            <result property="userEducation" column="user_education" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,user_name,
+        user_sex,user_phone,user_email,
+        user_school,user_major,user_year,
+        user_education,create_time,update_time,
+        is_delete
+    </sql>
+</mapper>
