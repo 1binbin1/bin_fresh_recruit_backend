@@ -96,7 +96,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             default:
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "角色代码错误");
         }
-        if (insertResult == 0 || saveResult) {
+        if (insertResult == 0 || !saveResult) {
             throw new BusinessException(ErrorCode.INSERT_ERROR);
         }
         return new AccountInfoVo(id, phone);
@@ -117,12 +117,54 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         Account account = accountMapper.selectOne(accountQueryWrapper);
         if (account == null) {
             log.info("User login error,phone password or role error");
-            throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+            throw new BusinessException(ErrorCode.LOGIN_ERROR);
         }
         // 记录登录态
         AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone());
         HttpSession session = request.getSession();
         session.setAttribute(USER_LOGIN_STATE, accountInfoVo);
+        return accountInfoVo;
+    }
+
+    @Override
+    public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword) {
+        HttpSession session = request.getSession();
+        Object attribute = session.getAttribute(USER_LOGIN_STATE);
+        AccountInfoVo accountInfoVo = (AccountInfoVo) attribute;
+        if (accountInfoVo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String phone = accountInfoVo.getPhone();
+        String aId = accountInfoVo.getId();
+        if (!password.equals(checkPassword)) {
+            throw new BusinessException(ErrorCode.PASSWORD_ERROR);
+        }
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_phone", phone);
+        accountQueryWrapper.eq("a_id", aId);
+        Long count = accountMapper.selectCount(accountQueryWrapper);
+        if (count == 0) {
+            throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+        }
+        // 修改
+        String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
+        Account account = new Account();
+        account.setAPassword(digestPassword);
+        int updateResult = accountMapper.update(account, accountQueryWrapper);
+        if (updateResult == 0) {
+            throw new BusinessException(ErrorCode.UPDATE_ERROR);
+        }
+        return accountInfoVo;
+    }
+
+    @Override
+    public AccountInfoVo accountLoginOut(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        HttpSession session = request.getSession();
+        AccountInfoVo accountInfoVo = (AccountInfoVo) session.getAttribute(USER_LOGIN_STATE);
+        session.removeAttribute(USER_LOGIN_STATE);
         return accountInfoVo;
     }
 }

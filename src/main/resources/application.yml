@@ -13,7 +13,7 @@ spring:
     password: 123456
   #    Session timeout (in minutes)
   session:
-    timeout: 86400
+    timeout: 4320
     store-type: redis
 
   #    Redis配置

@@ -34,4 +34,21 @@ public interface AccountService extends IService<Account> {
      * @return 响应数据
      */
     AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request);
+
+    /**
+     * 忘记密码
+     *
+     * @param request       登录态
+     * @param password      密码
+     * @param checkPassword 确认密码
+     * @return 响应数据
+     */
+    AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword);
+
+    /**
+     * 退出登录
+     * @param request 登录态
+     * @return 响应数据
+     */
+    AccountInfoVo accountLoginOut(HttpServletRequest request);
 }

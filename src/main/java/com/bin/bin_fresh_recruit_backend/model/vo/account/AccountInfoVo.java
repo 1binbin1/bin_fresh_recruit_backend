@@ -17,7 +17,7 @@ public class AccountInfoVo implements Serializable {
     private static final long serialVersionUID = 8656263509116674078L;
 
     /**
-     * 主键id
+     * 账号id
      */
     private String id;
 

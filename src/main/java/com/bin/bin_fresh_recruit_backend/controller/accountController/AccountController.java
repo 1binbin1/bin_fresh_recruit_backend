@@ -91,7 +91,30 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/forget")
-    public BaseResponse<AccountInfoVo> accountForget(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest) {
-        return null;
+    public BaseResponse<AccountInfoVo> accountForget(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest,
+                                                     HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (accountRegisterForgetRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        String password = accountRegisterForgetRequest.getPassword();
+        String checkPassword = accountRegisterForgetRequest.getCheckPassword();
+        // 校验
+        if (StringUtils.isAnyBlank(password, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword);
+        return ResultUtils.success(accountInfoVo);
+    }
+
+    @PostMapping("/loginout")
+    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request);
+        return ResultUtils.success(accountInfoVo);
     }
 }
