@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
-import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
 
 /**
  * @author hongxiaobin
@@ -166,6 +166,25 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         AccountInfoVo accountInfoVo = (AccountInfoVo) session.getAttribute(USER_LOGIN_STATE);
         session.removeAttribute(USER_LOGIN_STATE);
         return accountInfoVo;
+    }
+
+    @Deprecated
+    private String getSessionId(Integer role) {
+        String sessionId;
+        switch (role) {
+            case 0:
+                sessionId = SCHOOL_LOGIN_STATE;
+                break;
+            case 1:
+                sessionId = USER_LOGIN_STATE;
+                break;
+            case 2:
+                sessionId = COM_LOGIN_STATE;
+                break;
+            default:
+                throw new BusinessException(ErrorCode.ROLE_ERROR);
+        }
+        return sessionId;
     }
 }
 

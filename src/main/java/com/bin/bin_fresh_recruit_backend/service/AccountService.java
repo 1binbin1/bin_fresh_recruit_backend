@@ -47,6 +47,7 @@ public interface AccountService extends IService<Account> {
 
     /**
      * 退出登录
+     *
      * @param request 登录态
      * @return 响应数据
      */

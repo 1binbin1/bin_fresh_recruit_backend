@@ -101,6 +101,10 @@ public class AccountController {
         }
         String password = accountRegisterForgetRequest.getPassword();
         String checkPassword = accountRegisterForgetRequest.getCheckPassword();
+        Integer role = accountRegisterForgetRequest.getRole();
+        if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
+            throw new BusinessException(ErrorCode.ROLE_ERROR);
+        }
         // 校验
         if (StringUtils.isAnyBlank(password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -109,6 +113,12 @@ public class AccountController {
         return ResultUtils.success(accountInfoVo);
     }
 
+    /**
+     * 退出登录
+     *
+     * @param request 登录态
+     * @return 响应数据
+     */
     @PostMapping("/loginout")
     public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request) {
         if (request == null) {

@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 应届生个人信息表
+ * @author hongxiaobin
  * @TableName t_fresh_user_info
  */
 @TableName(value ="t_fresh_user_info")

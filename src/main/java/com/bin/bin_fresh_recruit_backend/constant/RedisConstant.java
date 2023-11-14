@@ -8,7 +8,7 @@ package com.bin.bin_fresh_recruit_backend.constant;
  */
 public interface RedisConstant {
     /**
-     * 登录态
+     * 应届生登录态
      */
     String USER_LOGIN_STATE = "userLoginState";
 
