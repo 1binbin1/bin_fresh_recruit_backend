@@ -109,7 +109,7 @@ public class AccountController {
         if (StringUtils.isAnyBlank(password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword);
+        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword,role);
         return ResultUtils.success(accountInfoVo);
     }
 
@@ -120,11 +120,11 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/loginout")
-    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request) {
+    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request,@RequestBody Integer role) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request);
+        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request,role);
         return ResultUtils.success(accountInfoVo);
     }
 }

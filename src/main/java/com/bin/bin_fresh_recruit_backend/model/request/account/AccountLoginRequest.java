@@ -1,5 +1,6 @@
 package com.bin.bin_fresh_recruit_backend.model.request.account;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -17,16 +18,19 @@ public class AccountLoginRequest implements Serializable {
     /**
      * 手机号
      */
+    @JsonProperty("phone")
     private String phone;
 
     /**
      * 密码
      */
+    @JsonProperty("password")
     private String password;
 
     /**
      * 角色
      * 0-管理员 1-应届生 2-企业
      */
+    @JsonProperty("role")
     private Integer role;
 }

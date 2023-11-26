@@ -43,7 +43,7 @@ public interface AccountService extends IService<Account> {
      * @param checkPassword 确认密码
      * @return 响应数据
      */
-    AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword);
+    AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role);
 
     /**
      * 退出登录
@@ -51,5 +51,5 @@ public interface AccountService extends IService<Account> {
      * @param request 登录态
      * @return 响应数据
      */
-    AccountInfoVo accountLoginOut(HttpServletRequest request);
+    AccountInfoVo accountLoginOut(HttpServletRequest request, Integer role);
 }

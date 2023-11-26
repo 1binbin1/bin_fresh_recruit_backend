@@ -12,26 +12,8 @@ import java.io.Serializable;
  * @Time: 2023/11/4 22:47
  */
 @Data
-public class AccountRegisterForgetRequest implements Serializable {
+public class AccountOutLoginRequest implements Serializable {
     private static final long serialVersionUID = 2774531409721924647L;
-
-    /**
-     * 手机号
-     */
-    @JsonProperty("phone")
-    private String phone;
-
-    /**
-     * 密码
-     */
-    @JsonProperty("password")
-    private String password;
-
-    /**
-     * 确认密码
-     */
-    @JsonProperty("check_password")
-    private String checkPassword;
 
     /**
      * 角色

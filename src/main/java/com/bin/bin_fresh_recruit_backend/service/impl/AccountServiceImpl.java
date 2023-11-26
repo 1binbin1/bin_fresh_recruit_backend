@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.management.relation.Role;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +46,15 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Resource
     private CompanyInfoMapper companyInfoMapper;
 
+    /**
+     * 账号注册
+     *
+     * @param phone         手机号
+     * @param password      密码
+     * @param checkPassword 确认密码
+     * @param role          角色
+     * @return AccountInfoVo
+     */
     @Override
     @Transactional
     public AccountInfoVo accountRegister(String phone, String password, String checkPassword, Integer role) {
@@ -102,6 +112,15 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         return new AccountInfoVo(id, phone);
     }
 
+    /**
+     * 账号登录
+     *
+     * @param phone    手机号
+     * @param password 密码
+     * @param role     角色
+     * @param request  登录态
+     * @return AccountInfoVo
+     */
     @Override
     public AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request) {
         // 参数校验
@@ -122,14 +141,22 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 记录登录态
         AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone());
         HttpSession session = request.getSession();
-        session.setAttribute(USER_LOGIN_STATE, accountInfoVo);
+        session.setAttribute(getSessionId(role), accountInfoVo);
         return accountInfoVo;
     }
 
+    /**
+     * 忘记密码
+     *
+     * @param request       登录态
+     * @param password      密码
+     * @param checkPassword 确认密码
+     * @return AccountInfoVo
+     */
     @Override
-    public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword) {
+    public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role) {
         HttpSession session = request.getSession();
-        Object attribute = session.getAttribute(USER_LOGIN_STATE);
+        Object attribute = session.getAttribute(getSessionId(role));
         AccountInfoVo accountInfoVo = (AccountInfoVo) attribute;
         if (accountInfoVo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
@@ -157,18 +184,23 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         return accountInfoVo;
     }
 
+    /**
+     * 退出登录
+     * @param request 登录态
+     * @return AccountInfoVo
+     */
     @Override
-    public AccountInfoVo accountLoginOut(HttpServletRequest request) {
+    public AccountInfoVo accountLoginOut(HttpServletRequest request,Integer role) {
         if (request == null) {
             return null;
         }
         HttpSession session = request.getSession();
-        AccountInfoVo accountInfoVo = (AccountInfoVo) session.getAttribute(USER_LOGIN_STATE);
-        session.removeAttribute(USER_LOGIN_STATE);
+        String sessionId = getSessionId(role);
+        AccountInfoVo accountInfoVo = (AccountInfoVo) session.getAttribute(sessionId);
+        session.removeAttribute(sessionId);
         return accountInfoVo;
     }
 
-    @Deprecated
     private String getSessionId(Integer role) {
         String sessionId;
         switch (role) {
