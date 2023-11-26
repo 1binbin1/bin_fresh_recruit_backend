@@ -13,6 +13,7 @@ import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
+import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,7 +142,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 记录登录态
         AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone());
         HttpSession session = request.getSession();
-        session.setAttribute(getSessionId(role), accountInfoVo);
+        session.setAttribute(LoginIdUtils.getSessionId(role), accountInfoVo);
         return accountInfoVo;
     }
 
@@ -156,13 +157,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Override
     public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role) {
         HttpSession session = request.getSession();
-        Object attribute = session.getAttribute(getSessionId(role));
-        AccountInfoVo accountInfoVo = (AccountInfoVo) attribute;
-        if (accountInfoVo == null) {
+        Account loginInfo = getLoginInfo(request, LoginIdUtils.getSessionId(role));
+        if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        String phone = accountInfoVo.getPhone();
-        String aId = accountInfoVo.getId();
+        String phone = loginInfo.getAPhone();
+        String aId = loginInfo.getAId();
         if (!password.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_ERROR);
         }
@@ -181,7 +181,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (updateResult == 0) {
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
-        return accountInfoVo;
+        return new AccountInfoVo(aId, phone);
     }
 
     /**
@@ -196,28 +196,45 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             return null;
         }
         HttpSession session = request.getSession();
-        String sessionId = getSessionId(role);
-        AccountInfoVo accountInfoVo = (AccountInfoVo) session.getAttribute(sessionId);
+        String sessionId = LoginIdUtils.getSessionId(role);
+        Account loginInfo = getLoginInfo(request, sessionId);
+        AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone());
         session.removeAttribute(sessionId);
         return accountInfoVo;
     }
 
-    private String getSessionId(Integer role) {
-        String sessionId;
+    /**
+     * 获取登录信息
+     *
+     * @param request 登录态
+     * @param role    角色代码
+     * @return AccountInfoVo
+     */
+    @Override
+    public Account getLoginInfo(HttpServletRequest request, String role) {
+        Object attribute;
         switch (role) {
-            case 0:
-                sessionId = SCHOOL_LOGIN_STATE;
+            case USER_LOGIN_STATE:
+                attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
                 break;
-            case 1:
-                sessionId = USER_LOGIN_STATE;
+            case COM_LOGIN_STATE:
+                attribute = request.getSession().getAttribute(COM_LOGIN_STATE);
                 break;
-            case 2:
-                sessionId = COM_LOGIN_STATE;
+            case SCHOOL_LOGIN_STATE:
+                attribute = request.getSession().getAttribute(SCHOOL_LOGIN_STATE);
                 break;
             default:
                 throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
-        return sessionId;
+        AccountInfoVo accountInfoVo = (AccountInfoVo) attribute;
+        if (accountInfoVo == null || accountInfoVo.getId() == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        Account account = this.getById(accountInfoVo.getId());
+        if (account == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        return account;
     }
 }
 

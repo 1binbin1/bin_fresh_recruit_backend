@@ -5,11 +5,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
+import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.FreshInfoRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
+import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
+import org.apache.catalina.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -32,18 +35,19 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
 
     @Resource
     private FreshUserInfoMapper freshUserInfoMapper;
+    @Resource
+    private AccountService accountService;
 
     @Override
     public FreshInfoVo getFreshInfoOne(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
-        AccountInfoVo freshUserInfo = (AccountInfoVo) attribute;
-        if (freshUserInfo == null) {
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        String userId = freshUserInfo.getId();
+        String userId = loginInfo.getAId();
         QueryWrapper<FreshUserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         FreshUserInfo userInfo = freshUserInfoMapper.selectOne(queryWrapper);
@@ -78,9 +82,8 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
         if (MAN != userSex || WOMAN != userSex) {
             throw new BusinessException(ErrorCode.USER_SEX_ERROR);
         }
-        Object attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
-        AccountInfoVo accountInfo = (AccountInfoVo) attribute;
-        String userId = accountInfo.getId();
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        String userId = loginInfo.getAId();
         // 更新数据库
         FreshUserInfo freshUserInfo = new FreshUserInfo();
         BeanUtils.copyProperties(freshInfoRequest, freshUserInfo);

@@ -52,4 +52,13 @@ public interface AccountService extends IService<Account> {
      * @return 响应数据
      */
     AccountInfoVo accountLoginOut(HttpServletRequest request, Integer role);
+
+    /**
+     * 获取登录用户信息
+     *
+     * @param request 登录态
+     * @param role    角色代码(常量)
+     * @return 账号信息
+     */
+    Account getLoginInfo(HttpServletRequest request, String role);
 }

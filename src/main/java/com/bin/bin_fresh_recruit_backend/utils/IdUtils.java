@@ -27,15 +27,22 @@ public class IdUtils {
         String uuidSub = uuidStr.substring(uuidStr.length() - 5);
         String date = sdf.format(new Date());
         String id;
+        String idPrefix = uuidSub + date;
         switch (role) {
             case SCHOOL_ROLE:
-                id = "O" + uuidSub + date;
+                id = "O" + idPrefix;
                 break;
             case FRESH_ROLE:
-                id = "C" + uuidSub + date;
+                id = "C" + idPrefix;
                 break;
             case COMPANY_ROLE:
-                id = "B" + uuidSub + date;
+                id = "B" + idPrefix;
+                break;
+            case RESUME_ID:
+                id = "R" + idPrefix;
+                break;
+            case JOB_ID:
+                id = "J" + idPrefix;
                 break;
             default:
                 id = "错误ID";

@@ -26,6 +26,16 @@ public interface CommonConstant {
     int COMPANY_ROLE = 2;
 
     /**
+     * 简历ID
+     */
+    int RESUME_ID = 3;
+
+    /**
+     * 岗位ID
+     */
+    int JOB_ID = 4;
+
+    /**
      * 男
      */
     int MAN = 0;
