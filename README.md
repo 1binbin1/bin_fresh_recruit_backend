@@ -4,3 +4,6 @@
 - 参考ddl\ddl.sql文件
 ### 接口设计
 - https://apifox.com/apidoc/shared-2bf2f9e6-a4a9-46d0-bc35-7e4d2f469386
+
+### 备注
+- 统一密码 123456

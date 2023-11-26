@@ -2,6 +2,7 @@ package com.bin.bin_fresh_recruit_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
+import com.bin.bin_fresh_recruit_backend.model.request.fresh.FreshInfoRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,4 +21,13 @@ public interface FreshUserInfoService extends IService<FreshUserInfo> {
      * @return 响应数据
      */
     FreshInfoVo getFreshInfoOne(HttpServletRequest request);
+
+    /**
+     * 应届生更新个人信息
+     *
+     * @param request          登录态
+     * @param freshInfoRequest 请求参数
+     * @return 响应数据
+     */
+    FreshInfoVo updateFreshInfo(HttpServletRequest request, FreshInfoRequest freshInfoRequest);
 }

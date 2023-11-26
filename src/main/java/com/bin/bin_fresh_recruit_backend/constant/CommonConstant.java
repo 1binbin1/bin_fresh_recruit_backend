@@ -24,4 +24,14 @@ public interface CommonConstant {
      * 角色-企业
      */
     int COMPANY_ROLE = 2;
+
+    /**
+     * 男
+     */
+    int MAN = 0;
+
+    /**
+     * 女
+     */
+    int WOMAN = 1;
 }

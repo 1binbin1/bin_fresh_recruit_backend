@@ -1,12 +1,13 @@
 package com.bin.bin_fresh_recruit_backend.model.vo.account;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * 账号相关响应体
+ * 账号相关响应体（登录态保存的）
  *
  * @Author: hongxiaobin
  * @Time: 2023/11/4 22:54
@@ -19,10 +20,12 @@ public class AccountInfoVo implements Serializable {
     /**
      * 账号id
      */
+    @JsonProperty("id")
     private String id;
 
     /**
      * 手机号
      */
+    @JsonProperty("phone")
     private String phone;
 }

@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import javax.management.relation.Role;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
@@ -56,7 +56,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @return AccountInfoVo
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = SQLException.class)
     public AccountInfoVo accountRegister(String phone, String password, String checkPassword, Integer role) {
         // 参数校验
         String pattern = "^1[3456789]\\d{9}$";
@@ -186,11 +186,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     /**
      * 退出登录
+     *
      * @param request 登录态
      * @return AccountInfoVo
      */
     @Override
-    public AccountInfoVo accountLoginOut(HttpServletRequest request,Integer role) {
+    public AccountInfoVo accountLoginOut(HttpServletRequest request, Integer role) {
         if (request == null) {
             return null;
         }

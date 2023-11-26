@@ -8,10 +8,7 @@ import com.bin.bin_fresh_recruit_backend.model.request.fresh.FreshInfoRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +36,14 @@ public class FreshInfoController {
     @PostMapping("/update")
     public BaseResponse<FreshInfoVo> updateFreshInfo(@RequestBody FreshInfoRequest freshInfoRequest,
                                                      HttpServletRequest request) {
-        return null;
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (freshInfoRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        FreshInfoVo freshInfoVo = freshUserInfoService.updateFreshInfo(request, freshInfoRequest);
+        return ResultUtils.success(freshInfoVo);
     }
 
     /**
@@ -48,7 +52,7 @@ public class FreshInfoController {
      * @param request 登录态
      * @return 响应数据
      */
-    @PostMapping("/getone")
+    @GetMapping("/getone")
     public BaseResponse<FreshInfoVo> getOneFreshInfo(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
