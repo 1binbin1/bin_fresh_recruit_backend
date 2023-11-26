@@ -39,7 +39,8 @@
         <!-- 子节点向上级传递 局部(包级)日志级别-->
         <logger level="WARN" name="org.springframework"/>
         <logger level="WARN" name="com.netflix"/>
-        <logger level="DEBUG" name="org.hibernate.SQL"/>
+        <logger level="DEBUG" name="org.apache.ibatis"/>
+        <logger level="DEBUG" name="com.baomidou.mybatisplus.core"/>
     </springProfile>
 
     <springProfile name="onlinepre">

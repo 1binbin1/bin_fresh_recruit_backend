@@ -40,7 +40,7 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
     #    Open database query log
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
   # Automatically skip data that has been logically deleted
   global-config:
     db-config:
@@ -50,5 +50,14 @@ mybatis-plus:
   # 日志
 logging:
   config: classpath:logback-spring.xml
-
-
+  #  Record all SQl
+  level:
+    com:
+      baomidou:
+        mybatisplus:
+          core:
+            mapper:
+              BaseMapper: debug
+      bin:
+        bin_fresh_recruit_backend:
+          mapper: debug
