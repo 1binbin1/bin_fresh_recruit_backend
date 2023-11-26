@@ -30,7 +30,7 @@ mybatis-plus:
   # Automatically skip data that has been logically deleted
   global-config:
     db-config:
-      logic-delete-field: isDelete # Entity field name for global logical deletion (since 3.3.0, step 2 can be ignored after configuration)
+      logic-delete-field: is_delete # Entity field name for global logical deletion (since 3.3.0, step 2 can be ignored after configuration)
       logic-delete-value: 1 # Logical deleted value (default is 1)
       logic-not-delete-value: 0 # Logical undeleted value (default is 0)
   # 日志
