@@ -51,7 +51,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
     public ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file) {
         long size = file.getSize();
         if (size > RESUME_SIZE) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件太多，最多只能10MB");
+            throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "文件太大，最多只能10MB");
         }
         Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
         String userId = loginInfo.getAId();
@@ -59,7 +59,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         if (userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String uploadResultUrl = qiniuyunOssConfig.upload(file, userId);
+        String uploadResultUrl = qiniuyunOssConfig.upload(file, userId, RESUME_PREFIX);
         if (uploadResultUrl == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }
@@ -110,6 +110,52 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         return resumeId;
+    }
+
+    /**
+     * 更新简历信息
+     *
+     * @param request  登录态
+     * @param file     简历文件
+     * @param resumeId 简历ID
+     * @return 简历信息
+     */
+    @Override
+    public ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId) {
+        long size = file.getSize();
+        if (size > RESUME_SIZE) {
+            throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "文件太大，最多只能10MB");
+        }
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        String userId = loginInfo.getAId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String uploadResultUrl = qiniuyunOssConfig.upload(file, userId, RESUME_PREFIX);
+        if (uploadResultUrl == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+        }
+        String fileName = file.getOriginalFilename();
+        if (fileName == null) {
+            fileName = DEFAULT_RESUME_NAME;
+        }
+        // 更新数据库
+        QueryWrapper<FreshResume> freshResumeQueryWrapper = new QueryWrapper<>();
+        freshResumeQueryWrapper.eq("user_id", userId);
+        freshResumeQueryWrapper.eq("resume_id", resumeId);
+        FreshResume freshResume = new FreshResume();
+        freshResume.setUserId(userId);
+        freshResume.setResumeId(resumeId);
+        freshResume.setUserNameLink(uploadResultUrl);
+        freshResume.setResumeName(fileName);
+        boolean update = this.update(freshResume, freshResumeQueryWrapper);
+        if (!update) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        FreshResume resume = this.getOne(freshResumeQueryWrapper);
+        ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
+        BeanUtils.copyProperties(resume, resumeInfoVo);
+        return resumeInfoVo;
     }
 }
 

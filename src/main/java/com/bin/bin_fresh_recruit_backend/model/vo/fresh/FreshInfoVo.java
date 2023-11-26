@@ -72,4 +72,10 @@ public class FreshInfoVo implements Serializable {
      */
     @JsonProperty("user_education")
     private String userEducation;
+
+    /**
+     * 头像链接
+     */
+    @JsonProperty("a_avatar")
+    private String aAvatar;
 }

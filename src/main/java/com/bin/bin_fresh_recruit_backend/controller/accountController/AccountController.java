@@ -10,10 +10,8 @@ import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -109,7 +107,7 @@ public class AccountController {
         if (StringUtils.isAnyBlank(password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword,role);
+        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword, role);
         return ResultUtils.success(accountInfoVo);
     }
 
@@ -120,11 +118,30 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/loginout")
-    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request,@RequestBody Integer role) {
+    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request, @RequestBody Integer role) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request,role);
+        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request, role);
         return ResultUtils.success(accountInfoVo);
+    }
+
+    /**
+     * 上传头像
+     *
+     * @param request 登录态
+     * @param file    文件
+     * @return 账号信息
+     */
+    @PostMapping("/upload")
+    public BaseResponse<AccountInfoVo> accountUploadAvatar(HttpServletRequest request, @RequestBody MultipartFile file,
+                                                           @RequestParam Integer role) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (file == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return ResultUtils.success(accountService.accountUploadAvatar(request, file, role));
     }
 }

@@ -54,4 +54,19 @@ public interface CommonConstant {
      * 简历大小（10M）
      */
     Long RESUME_SIZE = 1024 * 1024 * 10L;
+
+    /**
+     * 头像大小（1MB）
+     */
+    Long PHOTO_SIZE = 1024 * 1024 * 1L;
+
+    /**
+     * 保存头像的文件夹
+     */
+    String PHOTO_PREFIX = "avatar_photo";
+
+    /**
+     * 保存简历的文件夹
+     */
+    String RESUME_PREFIX = "fresh_resume";
 }

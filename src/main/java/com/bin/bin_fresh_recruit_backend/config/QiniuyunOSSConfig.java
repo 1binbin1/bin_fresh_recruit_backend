@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 七牛云对象存储
@@ -36,57 +37,30 @@ public class QiniuyunOSSConfig {
      */
     @Value("${qiniu.accessKey}")
     private String accessKey;
+
     /**
      * 私钥
      */
     @Value("${qiniu.secretKey}")
     private String accessSecretKey;
+
     /**
      * 存储空间
      */
     @Value("${qiniu.bucketName}")
     private String bucketName;
+
     /**
      * 域名
      */
     @Value("${qiniu.path}")
     private String path;
+
     /**
      * 空间里的文件夹
      */
     @Value("${qiniu.documentName}")
     private String documentName;
-
-    /**
-     * 文件上传
-     *
-     * @param file 要上传的文件
-     * @param uid  用户id
-     * @return 文件访问路径
-     */
-    public String upload(MultipartFile file, String uid) {
-        // 生成文件名
-        String fileName = getFileName(file.getOriginalFilename());
-        // 构造一个带指定Region对象的配置类，华南地区
-        com.qiniu.storage.Configuration configuration = new com.qiniu.storage.Configuration(Region.huanan());
-        UploadManager uploadManager = new UploadManager(configuration);
-        try {
-            byte[] bytes = file.getBytes();
-            Auth auth = Auth.create(accessKey, accessSecretKey);
-            String token = auth.uploadToken(bucketName);
-            String name = documentName + uid + "/" + fileName;
-            Response response = uploadManager.put(bytes, name, token);
-            // 解析上传成功结果
-            DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
-            if (putRet.toString().isEmpty()) {
-                return null;
-            }
-            return path + "/" + name;
-        } catch (Exception e) {
-            log.error("文件上传失败：{}", e.getMessage());
-        }
-        return null;
-    }
 
     /**
      * 生成唯一图片名称
@@ -104,5 +78,39 @@ public class QiniuyunOSSConfig {
         String suffix = fileName.substring(index).toLowerCase();
         String date = simpleDateFormat.format(new Date());
         return date + suffix;
+    }
+
+    /**
+     * 文件上传
+     *
+     * @param file 要上传的文件
+     * @param uid  用户id
+     * @return 文件访问路径
+     */
+    public String upload(MultipartFile file, String uid, String pathPrefix) {
+        // 生成文件名
+        String fileName = getFileName(file.getOriginalFilename());
+        // 构造一个带指定Region对象的配置类，华南地区
+        com.qiniu.storage.Configuration configuration = new com.qiniu.storage.Configuration(Region.huanan());
+        UploadManager uploadManager = new UploadManager(configuration);
+        try {
+            byte[] bytes = file.getBytes();
+            Auth auth = Auth.create(accessKey, accessSecretKey);
+            String token = auth.uploadToken(bucketName);
+            String name = documentName + uid + "/" + fileName;
+            if (!Objects.equals(pathPrefix, "")) {
+                name = documentName + pathPrefix + "/" + uid + "/" + fileName;
+            }
+            Response response = uploadManager.put(bytes, name, token);
+            // 解析上传成功结果
+            DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
+            if (putRet.toString().isEmpty()) {
+                return null;
+            }
+            return path + "/" + name;
+        } catch (Exception e) {
+            log.error("文件上传失败：{}", e.getMessage());
+        }
+        return null;
     }
 }

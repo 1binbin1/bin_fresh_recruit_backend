@@ -8,11 +8,9 @@ import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.FreshInfoRequest;
-import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
-import org.apache.catalina.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -35,9 +33,16 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
 
     @Resource
     private FreshUserInfoMapper freshUserInfoMapper;
+
     @Resource
     private AccountService accountService;
 
+    /**
+     * 应届生信息
+     *
+     * @param request 登录态
+     * @return 应届生信息
+     */
     @Override
     public FreshInfoVo getFreshInfoOne(HttpServletRequest request) {
         if (request == null) {
@@ -56,6 +61,11 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
         }
         FreshInfoVo freshInfoVo = new FreshInfoVo();
         BeanUtils.copyProperties(userInfo, freshInfoVo);
+        // 获取头像
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", userId);
+        Account account = accountService.getOne(accountQueryWrapper);
+        freshInfoVo.setAAvatar(account.getAAvatar());
         return freshInfoVo;
     }
 

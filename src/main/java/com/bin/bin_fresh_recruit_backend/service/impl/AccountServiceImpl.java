@@ -3,6 +3,7 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
 import com.bin.bin_fresh_recruit_backend.mapper.CompanyInfoMapper;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +48,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     @Resource
     private CompanyInfoMapper companyInfoMapper;
+
+    @Resource
+    private QiniuyunOSSConfig qiniuyunOssConfig;
 
     /**
      * 账号注册
@@ -110,7 +115,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (insertResult == 0 || !saveResult) {
             throw new BusinessException(ErrorCode.INSERT_ERROR);
         }
-        return new AccountInfoVo(id, phone);
+        return new AccountInfoVo(id, phone, "");
     }
 
     /**
@@ -140,7 +145,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.LOGIN_ERROR);
         }
         // 记录登录态
-        AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone());
+        AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar());
         HttpSession session = request.getSession();
         session.setAttribute(LoginIdUtils.getSessionId(role), accountInfoVo);
         return accountInfoVo;
@@ -163,6 +168,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         String phone = loginInfo.getAPhone();
         String aId = loginInfo.getAId();
+        String aAvatar = loginInfo.getAAvatar();
         if (!password.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_ERROR);
         }
@@ -181,7 +187,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (updateResult == 0) {
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
-        return new AccountInfoVo(aId, phone);
+        return new AccountInfoVo(aId, phone, aAvatar);
     }
 
     /**
@@ -198,7 +204,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         HttpSession session = request.getSession();
         String sessionId = LoginIdUtils.getSessionId(role);
         Account loginInfo = getLoginInfo(request, sessionId);
-        AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone());
+        AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone(), loginInfo.getAAvatar());
         session.removeAttribute(sessionId);
         return accountInfoVo;
     }
@@ -237,6 +243,42 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         return account;
+    }
+
+    /**
+     * 上传头像
+     *
+     * @param request 登录态
+     * @param file    文件
+     * @return 响应数据
+     */
+    @Override
+    public AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role) {
+        Account loginInfo = getLoginInfo(request, LoginIdUtils.getSessionId(role));
+        String aId = loginInfo.getAId();
+        // 上传头像
+        long size = file.getSize();
+        if (size > PHOTO_SIZE) {
+            throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "图片太大，最多只能1MB");
+        }
+        if (aId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String uploadResultUrl = qiniuyunOssConfig.upload(file, aId, PHOTO_PREFIX);
+        if (uploadResultUrl == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+        }
+        // 保存到数据库
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        Account account = new Account();
+        account.setAAvatar(uploadResultUrl);
+        accountQueryWrapper.eq("a_id", aId);
+        boolean update = this.update(account, accountQueryWrapper);
+        if (!update) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        Account accountInfo = this.getOne(accountQueryWrapper);
+        return new AccountInfoVo(accountInfo.getAId(), accountInfo.getAPhone(), accountInfo.getAAvatar());
     }
 }
 

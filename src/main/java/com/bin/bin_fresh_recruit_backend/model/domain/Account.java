@@ -4,18 +4,23 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 账号信息表
+ *
  * @author hongxiaobin
  * @TableName t_account
  */
-@TableName(value ="t_account")
+@TableName(value = "t_account")
 @Data
 public class Account implements Serializable {
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -41,6 +46,12 @@ public class Account implements Serializable {
     private String aPassword;
 
     /**
+     * 头像链接
+     */
+    @TableField(value = "a_avatar")
+    private String aAvatar;
+
+    /**
      * 角色，0-管理员，1-应届生，2-企业
      */
     @TableField(value = "a_role")
@@ -63,7 +74,4 @@ public class Account implements Serializable {
      */
     @TableField(value = "is_delete")
     private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

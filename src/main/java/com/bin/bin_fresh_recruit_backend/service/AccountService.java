@@ -3,6 +3,7 @@ package com.bin.bin_fresh_recruit_backend.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -61,4 +62,12 @@ public interface AccountService extends IService<Account> {
      * @return 账号信息
      */
     Account getLoginInfo(HttpServletRequest request, String role);
+
+    /**
+     * 上传头像
+     * @param request 登录态
+     * @param file 文件
+     * @return 响应数据
+     */
+    AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file,Integer role);
 }

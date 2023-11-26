@@ -32,4 +32,14 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @return ID
      */
     String deleteResume(HttpServletRequest request, ResumeRequest resumeRequest);
+
+    /**
+     * 更新简历信息
+     *
+     * @param request  登录态
+     * @param file     简历文件
+     * @param resumeId 简历ID
+     * @return 响应信息
+     */
+    ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId);
 }

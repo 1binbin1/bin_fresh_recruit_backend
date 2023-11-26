@@ -8,10 +8,7 @@ import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshResumeService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -67,4 +64,28 @@ public class FreshResumeController {
         String resumeId = freshResumeService.deleteResume(request, resumeRequest);
         return ResultUtils.success(resumeId);
     }
+
+    /**
+     * 更新简历附件
+     *
+     * @param request  登录态
+     * @param file     文件
+     * @param resumeId 简历ID
+     * @return 简历信息
+     */
+    @PostMapping("/update")
+    public BaseResponse<ResumeInfoVo> updateResume(HttpServletRequest request,
+                                                   @RequestBody MultipartFile file,
+                                                   @RequestParam("resume_id") String resumeId) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (file == null || resumeId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        ResumeInfoVo resumeInfoVo = freshResumeService.updateResume(request, file, resumeId);
+        return ResultUtils.success(resumeInfoVo);
+    }
+
+
 }

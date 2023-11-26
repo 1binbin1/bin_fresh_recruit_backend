@@ -28,4 +28,7 @@ public class AccountInfoVo implements Serializable {
      */
     @JsonProperty("phone")
     private String phone;
+
+    @JsonProperty("a_avatar")
+    private String aAvatar;
 }
