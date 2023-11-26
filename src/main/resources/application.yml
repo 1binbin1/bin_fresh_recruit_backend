@@ -5,24 +5,6 @@ spring:
   application:
     #  projectName
     name: bin_fresh_recruit_backend
-  datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/db_bin_fresh_job?serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
-  #    Session timeout (in minutes)
-  session:
-    timeout: 4320
-    store-type: redis
-
-  #    Redis配置
-  redis:
-    port: 6379
-    host: 127.0.0.1
-    password: 123456
-    database: 0
-    redissonDataBase: 2
 
   #    Swagger-UI starts 404 problem, add interception
   mvc:
@@ -61,3 +43,15 @@ logging:
       bin:
         bin_fresh_recruit_backend:
           mapper: debug
+
+qiniu:
+  # Public key
+  accessKey: AInw755zXpHzJg8xC-ZIbgRwR_0QW7F7FikmrZU_
+  # Private key
+  secretKey: p7YuVGxXvyKszPNthjgfd5nvUraiqu0CvQzAFFsp
+  # Storage space name
+  bucketName: bin-fresh-recruit-backend
+  # Domain name/path
+  path: http://s4pyawr5m.hn-bkt.clouddn.com
+  # The file names stored in the space do not need to be deleted
+  documentName: bin-fresh-recruit-backend/
