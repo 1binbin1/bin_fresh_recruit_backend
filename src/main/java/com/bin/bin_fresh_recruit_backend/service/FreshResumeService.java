@@ -7,6 +7,7 @@ import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author hongxiaobin
@@ -42,4 +43,12 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @return 响应信息
      */
     ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId);
+
+    /**
+     * 简历列表
+     *
+     * @param request 登录态
+     * @return 简历列表
+     */
+    List<ResumeInfoVo> getResumeList(HttpServletRequest request);
 }

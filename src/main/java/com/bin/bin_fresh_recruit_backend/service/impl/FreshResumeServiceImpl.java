@@ -19,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
@@ -156,6 +158,33 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
         BeanUtils.copyProperties(resume, resumeInfoVo);
         return resumeInfoVo;
+    }
+
+    /**
+     * 简历列表
+     *
+     * @param request 登录态
+     * @return 响应数据
+     */
+    @Override
+    public List<ResumeInfoVo> getResumeList(HttpServletRequest request) {
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        String userId = loginInfo.getAId();
+        QueryWrapper<FreshResume> freshResumeQueryWrapper = new QueryWrapper<>();
+        freshResumeQueryWrapper.eq("user_id", userId);
+        List<FreshResume> freshResumes = freshResumeMapper.selectList(freshResumeQueryWrapper);
+        ArrayList<ResumeInfoVo> resumeInfoVos = new ArrayList<>();
+        for (FreshResume freshResume : freshResumes) {
+            ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
+            resumeInfoVo.setUserId(freshResume.getUserId());
+            resumeInfoVo.setResumeId(freshResume.getResumeId());
+            resumeInfoVo.setUserNameLink(freshResume.getUserNameLink());
+            resumeInfoVo.setResumeName(freshResume.getResumeName());
+            resumeInfoVo.setCreateTime(freshResume.getCreateTime());
+            resumeInfoVo.setUpdateTime(freshResume.getUpdateTime());
+            resumeInfoVos.add(resumeInfoVo);
+        }
+        return resumeInfoVos;
     }
 }
 

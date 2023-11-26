@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * C端-简历相关
@@ -87,5 +88,18 @@ public class FreshResumeController {
         return ResultUtils.success(resumeInfoVo);
     }
 
-
+    /**
+     * 获取简历附件列表
+     *
+     * @param request 登录态
+     * @return 列表
+     */
+    @GetMapping("/list")
+    public BaseResponse<List<ResumeInfoVo>> getResumeList(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<ResumeInfoVo> list = freshResumeService.getResumeList(request);
+        return ResultUtils.success(list);
+    }
 }
