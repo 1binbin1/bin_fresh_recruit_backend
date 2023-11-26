@@ -2,6 +2,7 @@ package com.bin.bin_fresh_recruit_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshResume;
+import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,4 +23,13 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @return 简历信息
      */
     ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file);
+
+    /**
+     * 删除简历
+     *
+     * @param request       登录态
+     * @param resumeRequest 请求参数
+     * @return ID
+     */
+    String deleteResume(HttpServletRequest request, ResumeRequest resumeRequest);
 }

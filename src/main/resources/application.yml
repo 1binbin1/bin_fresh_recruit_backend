@@ -11,6 +11,10 @@ spring:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
 server:
   port: 8081
   #  Uniform request prefix
@@ -54,4 +58,4 @@ qiniu:
   # Domain name/path
   path: http://s4pyawr5m.hn-bkt.clouddn.com
   # The file names stored in the space do not need to be deleted
-  documentName: bin-fresh-recruit-backend/
+  documentName: bin_fresh_recruit_backend/

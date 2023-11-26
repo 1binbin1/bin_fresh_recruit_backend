@@ -4,18 +4,23 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 应届生附件简历表
+ *
  * @author hongxiaobin
  * @TableName t_fresh_resume
  */
-@TableName(value ="t_fresh_resume")
+@TableName(value = "t_fresh_resume")
 @Data
 public class FreshResume implements Serializable {
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -41,6 +46,12 @@ public class FreshResume implements Serializable {
     private String userNameLink;
 
     /**
+     * 简历名称
+     */
+    @TableField(value = "resume_name")
+    private String resumeName;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time")
@@ -57,7 +68,4 @@ public class FreshResume implements Serializable {
      */
     @TableField(value = "is_delete")
     private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

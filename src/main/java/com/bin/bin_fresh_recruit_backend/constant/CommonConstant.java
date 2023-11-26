@@ -44,4 +44,14 @@ public interface CommonConstant {
      * 女
      */
     int WOMAN = 1;
+
+    /**
+     * 默认简历名称
+     */
+    String DEFAULT_RESUME_NAME = "默认简历.pdf";
+
+    /**
+     * 简历大小（10M）
+     */
+    Long RESUME_SIZE = 1024 * 1024 * 10L;
 }

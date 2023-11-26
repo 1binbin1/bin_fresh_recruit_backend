@@ -230,7 +230,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (accountInfoVo == null || accountInfoVo.getId() == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        Account account = this.getById(accountInfoVo.getId());
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", accountInfoVo.getId());
+        Account account = this.getOne(accountQueryWrapper);
         if (account == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }

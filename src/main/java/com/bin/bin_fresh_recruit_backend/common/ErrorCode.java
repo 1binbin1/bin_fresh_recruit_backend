@@ -22,6 +22,7 @@ public enum ErrorCode {
     UPDATE_ERROR(40007, "更新数据异常"),
     USER_SEX_ERROR(4008,"性别代码错误"),
     GET_INFO_ERROR(4009,"获取角色信息错误"),
+    SQL_ERROR(4010,"数据库执行错误"),
     ;
 
     /**
