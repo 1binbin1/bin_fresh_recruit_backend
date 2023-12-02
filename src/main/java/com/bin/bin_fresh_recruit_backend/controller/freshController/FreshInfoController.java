@@ -49,14 +49,14 @@ public class FreshInfoController {
     /**
      * 获取个人信息
      *
-     * @param request 登录态
+     * @param userId 用户ID
      * @return 响应数据
      */
-    @GetMapping("/getone")
-    public BaseResponse<FreshInfoVo> getOneFreshInfo(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
+    @GetMapping("/one")
+    public BaseResponse<FreshInfoVo> getOneFreshInfo(@RequestParam("user_ID") String userId) {
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        return ResultUtils.success(freshUserInfoService.getFreshInfoOne(request));
+        return ResultUtils.success(freshUserInfoService.getFreshInfoOne(userId));
     }
 }

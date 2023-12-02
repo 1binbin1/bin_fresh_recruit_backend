@@ -17,10 +17,10 @@ public interface FreshUserInfoService extends IService<FreshUserInfo> {
     /**
      * 查询应届生信息
      *
-     * @param request 登录态
+     * @param userId 用户ID
      * @return 响应数据
      */
-    FreshInfoVo getFreshInfoOne(HttpServletRequest request);
+    FreshInfoVo getFreshInfoOne(String userId);
 
     /**
      * 应届生更新个人信息

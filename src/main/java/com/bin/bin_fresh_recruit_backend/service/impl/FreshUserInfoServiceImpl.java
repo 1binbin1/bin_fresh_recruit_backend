@@ -40,19 +40,11 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
     /**
      * 应届生信息
      *
-     * @param request 登录态
+     * @param userId 用户ID
      * @return 应届生信息
      */
     @Override
-    public FreshInfoVo getFreshInfoOne(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
-        if (loginInfo == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        String userId = loginInfo.getAId();
+    public FreshInfoVo getFreshInfoOne(String userId) {
         QueryWrapper<FreshUserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         FreshUserInfo userInfo = freshUserInfoMapper.selectOne(queryWrapper);
@@ -104,7 +96,7 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
         // 回显
-        return getFreshInfoOne(request);
+        return getFreshInfoOne(userId);
     }
 }
 

@@ -16,7 +16,7 @@ public class IdUtils {
     /**
      * 生成ID
      *
-     * @param role 角色代码 0-管理员 1-应届生 2-企业
+     * @param role 角色代码 0-管理员 1-应届生 2-企业 3-简历 4-岗位
      * @return ID
      */
     public static String getId(int role) {
