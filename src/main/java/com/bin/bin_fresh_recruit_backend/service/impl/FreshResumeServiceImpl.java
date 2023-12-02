@@ -186,6 +186,26 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         }
         return resumeInfoVos;
     }
+
+    /**
+     * 获取简历信息
+     *
+     * @param request  登录态
+     * @param resumeId 简历ID
+     * @return 简历信息
+     */
+    @Override
+    public ResumeInfoVo getResumeOne(HttpServletRequest request, String resumeId) {
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        String userId = loginInfo.getAId();
+        QueryWrapper<FreshResume> freshResumeQueryWrapper = new QueryWrapper<>();
+        freshResumeQueryWrapper.eq("user_id", userId);
+        freshResumeQueryWrapper.eq("resume_id", resumeId);
+        FreshResume freshResume = this.getOne(freshResumeQueryWrapper);
+        ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
+        BeanUtils.copyProperties(freshResume, resumeInfoVo);
+        return resumeInfoVo;
+    }
 }
 
 

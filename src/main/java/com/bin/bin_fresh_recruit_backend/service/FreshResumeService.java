@@ -51,4 +51,13 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @return 简历列表
      */
     List<ResumeInfoVo> getResumeList(HttpServletRequest request);
+
+    /**
+     * 简历详情
+     *
+     * @param request  登录态
+     * @param resumeId 简历ID
+     * @return 简历信息
+     */
+    ResumeInfoVo getResumeOne(HttpServletRequest request, String resumeId);
 }

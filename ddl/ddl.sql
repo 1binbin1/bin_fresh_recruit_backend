@@ -161,3 +161,19 @@ CREATE TABLE t_school_intro
     PRIMARY KEY (id)
 ) COMMENT = '就业咨询信息表';
 
+DROP TABLE IF EXISTS t_fresh_com_send;
+CREATE TABLE t_fresh_com_send
+(
+    id          INT                                       NOT NULL AUTO_INCREMENT COMMENT 'id',
+    user_id     VARCHAR(16) default ''                    NOT NULL COMMENT '应届生ID',
+    com_id      VARCHAR(16) default ''                    NOT NULL COMMENT '企业ID',
+    job_id      VARCHAR(16) default ''                    NOT NULL COMMENT '岗位ID',
+    resume_id   VARCHAR(16) default ''                    NOT NULL COMMENT '简历id',
+    send_time   timestamp   default '0000:00:00 00:00:00' not null comment '发送时间',
+    send_state  tinyint     default 0                     not null comment '投递状态 0-已投递 1-被查看 2-邀约面试 3-初筛不通过 4-流程结束',
+    create_time datetime    default CURRENT_TIMESTAMP     not null comment '创建时间',
+    update_time datetime    default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint     default 0                     not null comment '是否删除，0-否，1-是',
+    PRIMARY KEY (id),
+    index index_ids (user_id, com_id, job_id, resume_id)
+) COMMENT = '应届生投递记录表';

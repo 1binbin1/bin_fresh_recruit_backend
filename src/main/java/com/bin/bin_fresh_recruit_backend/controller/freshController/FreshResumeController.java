@@ -5,7 +5,10 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
+import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import com.bin.bin_fresh_recruit_backend.service.FreshResumeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,8 @@ import java.util.List;
 public class FreshResumeController {
     @Resource
     private FreshResumeService freshResumeService;
+    @Resource
+    private FreshComSendService freshComSendService;
 
     /**
      * 上传简历附件
@@ -101,5 +106,44 @@ public class FreshResumeController {
         }
         List<ResumeInfoVo> list = freshResumeService.getResumeList(request);
         return ResultUtils.success(list);
+    }
+
+    /**
+     * 获取简历详情
+     *
+     * @param request  登录态
+     * @param resumeId 简历ID
+     * @return 简历信息
+     */
+    @GetMapping("/one")
+    public BaseResponse<ResumeInfoVo> getResumeOne(HttpServletRequest request,
+                                                   @RequestParam("resume_id") String resumeId) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (resumeId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        ResumeInfoVo resumeOne = freshResumeService.getResumeOne(request, resumeId);
+        return ResultUtils.success(resumeOne);
+    }
+
+    /**
+     * 投递简历
+     *
+     * @param request 登录态
+     * @param resumeSendRequest 简历投递请求
+     * @return 响应数据
+     */
+    @PostMapping("/send")
+    public BaseResponse<FreshComSendVo> sendResume(HttpServletRequest request, @RequestBody ResumeSendRequest resumeSendRequest) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (resumeSendRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        FreshComSendVo freshComSendVo = freshComSendService.sendResume(request, resumeSendRequest);
+        return ResultUtils.success(freshComSendVo);
     }
 }
