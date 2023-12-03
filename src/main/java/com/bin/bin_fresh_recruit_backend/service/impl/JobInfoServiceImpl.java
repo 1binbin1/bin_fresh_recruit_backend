@@ -1,18 +1,21 @@
 package com.bin.bin_fresh_recruit_backend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
+import com.bin.bin_fresh_recruit_backend.constant.DictConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
-import com.bin.bin_fresh_recruit_backend.mapper.JobInfoMapper;
-import com.bin.bin_fresh_recruit_backend.model.domain.Account;
-import com.bin.bin_fresh_recruit_backend.model.domain.JobInfo;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoAddRequest;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoDeleteRequest;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoUpdateRequest;
+import com.bin.bin_fresh_recruit_backend.mapper.*;
+import com.bin.bin_fresh_recruit_backend.model.domain.*;
+import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
+import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
+import com.bin.bin_fresh_recruit_backend.utils.AlgorithmUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -20,9 +23,15 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.JOB_ID;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.RECOMMEND_NO;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.COM_LOGIN_STATE;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
 
 /**
@@ -36,6 +45,21 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
 
     @Resource
     private AccountService accountService;
+
+    @Resource
+    private FreshComSendMapper freshComSendMapper;
+
+    @Resource
+    private CompanyInfoMapper companyInfoMapper;
+
+    @Resource
+    private JobInfoMapper jobInfoMapper;
+
+    @Resource
+    private JobPurposeMapper jobPurposeMapper;
+
+    @Resource
+    private DictMapper dictMapper;
 
     /**
      * 新增岗位信息
@@ -110,14 +134,21 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         return jobInfoVo;
     }
 
+    /**
+     * 岗位删除
+     *
+     * @param request          登录态
+     * @param jobInfoIdRequest 岗位ID
+     * @return 响应信息
+     */
     @Override
-    public String deleteJob(HttpServletRequest request, JobInfoDeleteRequest jobInfoDeleteRequest) {
+    public String deleteJob(HttpServletRequest request, JobInfoIdRequest jobInfoIdRequest) {
         Account loginInfo = accountService.getLoginInfo(request, COM_LOGIN_STATE);
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         String comId = loginInfo.getAId();
-        String jobId = jobInfoDeleteRequest.getJobId();
+        String jobId = jobInfoIdRequest.getJobId();
         if (StringUtils.isAnyBlank(jobId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
@@ -130,6 +161,223 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         return jobId;
+    }
+
+    /**
+     * 简历筛选
+     *
+     * @param request               登录态
+     * @param resumeFiltrateRequest 请求信息
+     * @return 响应信息
+     */
+    @Override
+    public ResumeInfoVo filrate(HttpServletRequest request, ResumeFiltrateRequest resumeFiltrateRequest) {
+        Account loginInfo = accountService.getLoginInfo(request, COM_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String comId = loginInfo.getAId();
+        if (StringUtils.isAnyBlank(comId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String jobId = resumeFiltrateRequest.getJobId();
+        String userId = resumeFiltrateRequest.getUserId();
+        Integer sendState = resumeFiltrateRequest.getSendState();
+        if (StringUtils.isAnyBlank(jobId, userId)) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        if (!Objects.equals(sendState, SendStatus.SendStatusSuccess) &&
+                !Objects.equals(sendState, SendStatus.SendStatusLooked) &&
+                !Objects.equals(sendState, SendStatus.SendStatusInvited) &&
+                !Objects.equals(sendState, SendStatus.SendStatusNoPass) &&
+                !Objects.equals(sendState, SendStatus.SendStatusFinish)) {
+            throw new BusinessException(ErrorCode.SEND_STATE_ERROR);
+        }
+        // 修改
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.eq("com_id", comId);
+        freshComSendQueryWrapper.eq("user_id", userId);
+        freshComSendQueryWrapper.eq("job_id", jobId);
+        FreshComSend freshComSend = new FreshComSend();
+        freshComSend.setSendState(sendState);
+        int update = freshComSendMapper.update(freshComSend, freshComSendQueryWrapper);
+        if (update == 0) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        FreshComSend freshComSendInfo = freshComSendMapper.selectOne(freshComSendQueryWrapper);
+        ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
+        BeanUtils.copyProperties(freshComSendInfo, resumeInfoVo);
+        return resumeInfoVo;
+    }
+
+    /**
+     * 查询单个岗位信息
+     *
+     * @param jobInfoIdRequest 请求参数
+     * @return 岗位信息
+     */
+    @Override
+    public JobInfoVo getJobOne(JobInfoIdRequest jobInfoIdRequest) {
+        String jobId = jobInfoIdRequest.getJobId();
+        if (StringUtils.isAnyBlank(jobId)) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        jobInfoQueryWrapper.eq("job_id", jobId);
+        JobInfo jobInfo = this.getOne(jobInfoQueryWrapper);
+        JobInfoVo jobInfoVo = new JobInfoVo();
+        BeanUtils.copyProperties(jobInfo, jobInfoVo);
+        return jobInfoVo;
+    }
+
+    /**
+     * 岗位查询列表
+     *
+     * @param jobSearchRequest 搜索条件
+     * @return 响应信息
+     */
+    @Override
+    public PageVo<JobInfoVo> getJobList(JobSearchRequest jobSearchRequest) {
+        if (jobSearchRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        // 查询企业
+        QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
+        companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
+        companyInfoQueryWrapper.eq("com_sum", jobSearchRequest.getComNum());
+        companyInfoQueryWrapper.eq("com_address", jobSearchRequest.getComAddress());
+        companyInfoQueryWrapper.like("com_name", jobSearchRequest.getSearchContent());
+        List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
+        // 提取comId
+        List<String> comIds = new ArrayList<>();
+        for (CompanyInfo companyInfo : companyInfos) {
+            comIds.add(companyInfo.getComId());
+        }
+        long current = jobSearchRequest.getCurrent();
+        long pageSize = jobSearchRequest.getPageSize();
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        jobInfoQueryWrapper.eq("job_type", jobSearchRequest.getJobType());
+        jobInfoQueryWrapper.like("job_name", jobSearchRequest.getSearchContent());
+        jobInfoQueryWrapper.in("com_id", comIds);
+        Page<JobInfo> jobInfoPage = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
+        // 处理结果
+        ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
+        PageVo<JobInfoVo> result = new PageVo<>();
+        for (JobInfo jobInfo : jobInfoPage.getRecords()) {
+            JobInfoVo jobInfoVo = new JobInfoVo();
+            BeanUtils.copyProperties(jobInfo, jobInfoVo);
+            jobInfoVos.add(jobInfoVo);
+        }
+        result.setList(jobInfoVos);
+        result.setTotal(jobInfoPage.getTotal());
+        result.setCurrent(jobInfoPage.getCurrent());
+        result.setPageSize(jobInfoPage.getPages());
+        return result;
+    }
+
+    /**
+     * 获取企业岗位列表
+     *
+     * @param jobComSearchRequest 请求条件
+     * @return 响应信息
+     */
+    @Override
+    public PageVo<JobInfoVo> getJobListByCom(JobComSearchRequest jobComSearchRequest) {
+        String comId = jobComSearchRequest.getComId();
+        if (StringUtils.isAnyBlank(comId)) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        long current = jobComSearchRequest.getCurrent();
+        long pageSize = jobComSearchRequest.getPageSize();
+        String searchContent = jobComSearchRequest.getSearchContent();
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        jobInfoQueryWrapper.eq("con_id", comId);
+        jobInfoQueryWrapper.like("job_name", searchContent);
+        jobInfoQueryWrapper.like("job_type", searchContent);
+        Page<JobInfo> page = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
+        PageVo<JobInfoVo> jobInfoPageVo = new PageVo<>();
+        List<JobInfoVo> jobInfoVos = new ArrayList<>();
+        for (JobInfo record : page.getRecords()) {
+            JobInfoVo jobInfoVo = new JobInfoVo();
+            BeanUtils.copyProperties(record, jobInfoVo);
+            jobInfoVos.add(jobInfoVo);
+        }
+        jobInfoPageVo.setList(jobInfoVos);
+        jobInfoPageVo.setTotal(page.getTotal());
+        jobInfoPageVo.setCurrent(page.getCurrent());
+        jobInfoPageVo.setPageSize(page.getPages());
+        return jobInfoPageVo;
+    }
+
+    /**
+     * 获取推荐岗位列表
+     *
+     * @param request     登录态
+     * @param limit       推荐个数
+     * @param isRecommend 是否推荐 0-否 1-是
+     * @return 岗位列表
+     */
+    @Override
+    public List<JobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend) {
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        List<JobInfoVo> list = new ArrayList<>();
+        long count = this.count();
+        Random random = new Random();
+        Page<JobInfo> jobInfoPage;
+        if (Objects.equals(isRecommend, RECOMMEND_NO)) {
+            // 随机查询
+            Page<JobInfo> infoPage = new Page<>(random.nextInt((int) count) - limit, limit);
+            jobInfoPage = jobInfoMapper.selectPage(infoPage, jobInfoQueryWrapper);
+        } else {
+            jobInfoPage = getRecommendListByUserId(request, limit);
+        }
+        // 处理结果
+        for (JobInfo jobInfo : jobInfoPage.getRecords()) {
+            JobInfoVo jobInfoVo = new JobInfoVo();
+            BeanUtils.copyProperties(jobInfo, jobInfoVo);
+            list.add(jobInfoVo);
+        }
+        return list;
+    }
+
+    /**
+     * 获取推荐列表
+     *
+     * @param request 登录态
+     * @param limit   个数
+     * @return 分页列表
+     */
+    private Page<JobInfo> getRecommendListByUserId(HttpServletRequest request, Integer limit) {
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String userId = loginInfo.getAId();
+        // 获取应届生的意向岗位类别
+        QueryWrapper<JobPurpose> jobPurposeQueryWrapper = new QueryWrapper<>();
+        jobPurposeQueryWrapper.eq("user_id", userId);
+        List<JobPurpose> jobPurposes = jobPurposeMapper.selectList(jobPurposeQueryWrapper);
+        ArrayList<String> freshType = new ArrayList<>();
+        for (JobPurpose jobPurpose : jobPurposes) {
+            freshType.add(jobPurpose.getJobType());
+        }
+        // 获取所有类别
+        QueryWrapper<Dict> dictQueryWrapper = new QueryWrapper<>();
+        dictQueryWrapper.eq("dict_type", DictConstant.DICT_JOB_TYPE);
+        List<Dict> dicts = dictMapper.selectList(dictQueryWrapper);
+        ArrayList<String> dictType = new ArrayList<>();
+        for (Dict dict : dicts) {
+            dictType.add(dict.getDictContent());
+        }
+        // 查找相似
+        List<String> recommendTypeList = AlgorithmUtils.getRecommendTypeList(freshType, dictType);
+
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        jobInfoQueryWrapper.in("job_type", recommendTypeList);
+        Random random = new Random();
+        long count = this.count(jobInfoQueryWrapper);
+        Page<JobInfo> infoPage = new Page<>(random.nextInt((int) count) - limit, limit);
+        return this.page(infoPage, jobInfoQueryWrapper);
     }
 }
 

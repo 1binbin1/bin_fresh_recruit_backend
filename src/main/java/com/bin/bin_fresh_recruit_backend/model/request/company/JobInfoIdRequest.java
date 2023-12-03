@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @TableName t_job_info
  */
 @Data
-public class JobInfoDeleteRequest implements Serializable {
+public class JobInfoIdRequest implements Serializable {
     private static final long serialVersionUID = 7313794593576633889L;
 
     /**

@@ -161,7 +161,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      */
     @Override
     public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role) {
-        HttpSession session = request.getSession();
         Account loginInfo = getLoginInfo(request, LoginIdUtils.getSessionId(role));
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);

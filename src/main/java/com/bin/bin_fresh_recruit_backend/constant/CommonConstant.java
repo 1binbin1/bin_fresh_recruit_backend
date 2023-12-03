@@ -69,4 +69,24 @@ public interface CommonConstant {
      * 保存简历的文件夹
      */
     String RESUME_PREFIX = "fresh_resume";
+
+    /**
+     * 不开启推荐
+     */
+    Integer RECOMMEND_NO = 0;
+
+    /**
+     * 开启推荐
+     */
+    Integer RECOMMEND_YES = 1;
+
+    /**
+     * 默认推荐个数
+     */
+    Integer RECOMMEND_LIMIT = 20;
+
+    /**
+     * 额外匹配个数
+     */
+    Integer MATCH_NUM = 2;
 }

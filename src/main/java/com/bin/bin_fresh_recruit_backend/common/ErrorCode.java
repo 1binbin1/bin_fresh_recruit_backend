@@ -24,6 +24,7 @@ public enum ErrorCode {
     GET_INFO_ERROR(4009,"获取角色信息错误"),
     SQL_ERROR(4010,"数据库执行错误"),
     FILE_SIZE_ERROR(4010,"文件太大"),
+    SEND_STATE_ERROR(4011,"简历状态码错误"),
     ;
 
     /**

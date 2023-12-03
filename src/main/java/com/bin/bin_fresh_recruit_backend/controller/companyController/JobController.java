@@ -2,18 +2,15 @@ package com.bin.bin_fresh_recruit_backend.controller.companyController;
 
 import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoAddRequest;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoDeleteRequest;
-import com.bin.bin_fresh_recruit_backend.model.request.company.JobInfoUpdateRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -67,15 +64,87 @@ public class JobController {
         return ResultUtils.success(jobInfoVo);
     }
 
+    /**
+     * 删除岗位
+     *
+     * @param request          登录态
+     * @param jobInfoIdRequest 岗位信息请求
+     * @return 删除的岗位ID
+     */
     @PostMapping("/delete")
-    public BaseResponse<String> deleteJob(HttpServletRequest request, @RequestBody JobInfoDeleteRequest jobInfoDeleteRequest) {
+    public BaseResponse<String> deleteJob(HttpServletRequest request, @RequestBody JobInfoIdRequest jobInfoIdRequest) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        if (jobInfoDeleteRequest == null) {
+        if (jobInfoIdRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String jobId = jobInfoService.deleteJob(request, jobInfoDeleteRequest);
+        String jobId = jobInfoService.deleteJob(request, jobInfoIdRequest);
         return ResultUtils.success(jobId);
+    }
+
+    /**
+     * 简历筛选
+     *
+     * @param request               登录态
+     * @param resumeFiltrateRequest 请求参数
+     * @return 简历投递信息
+     */
+    @PostMapping("/filrate")
+    public BaseResponse<ResumeInfoVo> filrateResume(HttpServletRequest request, @RequestBody ResumeFiltrateRequest resumeFiltrateRequest) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (resumeFiltrateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        ResumeInfoVo resumeInfoVo = jobInfoService.filrate(request, resumeFiltrateRequest);
+        return ResultUtils.success(resumeInfoVo);
+    }
+
+    /**
+     * 查询岗位信息
+     *
+     * @param jobInfoIdRequest 请求参数
+     * @return 返回参数
+     */
+    @GetMapping("/one")
+    public BaseResponse<JobInfoVo> getJobOne(@RequestBody JobInfoIdRequest jobInfoIdRequest) {
+        if (jobInfoIdRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        JobInfoVo jobInfoVo = jobInfoService.getJobOne(jobInfoIdRequest);
+        return ResultUtils.success(jobInfoVo);
+    }
+
+
+    /**
+     * 岗位搜索
+     *
+     * @param jobSearchRequest 请求参数
+     * @return 响应
+     */
+    @PostMapping("/list/search")
+    public BaseResponse<PageVo<JobInfoVo>> getJobList(@RequestBody JobSearchRequest jobSearchRequest) {
+        if (jobSearchRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        PageVo<JobInfoVo> pageVo = jobInfoService.getJobList(jobSearchRequest);
+        return ResultUtils.success(pageVo);
+    }
+
+    /**
+     * 查询企业的岗位
+     *
+     * @param jobComSearchRequest 请求参数
+     * @return 响应信息
+     */
+    @PostMapping("/list/company")
+    public BaseResponse<PageVo<JobInfoVo>> getJobListByCompany(@RequestBody JobComSearchRequest jobComSearchRequest) {
+        if (jobComSearchRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        PageVo<JobInfoVo> pageVoCom = jobInfoService.getJobListByCom(jobComSearchRequest);
+        return ResultUtils.success(pageVoCom);
     }
 }
