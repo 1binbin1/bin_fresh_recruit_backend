@@ -4,14 +4,15 @@ use db_bin_fresh_job;
 DROP TABLE IF EXISTS t_account;
 CREATE TABLE t_account
 (
-    id          INT                                   NOT NULL AUTO_INCREMENT COMMENT 'id',
-    a_id        VARCHAR(16) default ''                NOT NULL COMMENT '账号ID',
-    a_phone     varchar(16) default ''                not null comment '手机号',
-    a_password  VARCHAR(32) default ''                NOT NULL COMMENT '密码',
-    a_role      INT         default 0                 NOT NULL COMMENT '角色，0-管理员，1-应届生，2-企业',
-    create_time datetime    default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time datetime    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint     default 0                 not null comment '是否删除，0-否，1-是',
+    id          INT                                    NOT NULL AUTO_INCREMENT COMMENT 'id',
+    a_id        VARCHAR(16)  default ''                NOT NULL COMMENT '账号ID',
+    a_phone     varchar(16)  default ''                not null comment '手机号',
+    a_password  VARCHAR(32)  default ''                NOT NULL COMMENT '密码',
+    a_role      INT          default 0                 NOT NULL COMMENT '角色，0-管理员，1-应届生，2-企业',
+    a_avatar    VARCHAR(256) default ''                NOT NULL COMMENT '头像',
+    create_time datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint      default 0                 not null comment '是否删除，0-否，1-是',
     PRIMARY KEY (id),
     index index_a_id (a_id)
 ) COMMENT = '账号信息表';
