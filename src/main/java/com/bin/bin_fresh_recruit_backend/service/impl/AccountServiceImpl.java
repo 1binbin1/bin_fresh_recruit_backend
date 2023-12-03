@@ -3,6 +3,7 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
@@ -11,11 +12,13 @@ import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.CompanyInfo;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
+import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -51,6 +54,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     @Resource
     private QiniuyunOSSConfig qiniuyunOssConfig;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    private PushMsgConfig pushMsgConfig;
 
     /**
      * 账号注册
@@ -154,29 +163,28 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     /**
      * 忘记密码
      *
-     * @param request       登录态
+     * @param phone         手机号
      * @param password      密码
      * @param checkPassword 确认密码
      * @return AccountInfoVo
      */
     @Override
-    public AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role) {
-        Account loginInfo = getLoginInfo(request, LoginIdUtils.getSessionId(role));
-        if (loginInfo == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        String phone = loginInfo.getAPhone();
-        String aId = loginInfo.getAId();
-        String aAvatar = loginInfo.getAAvatar();
+    public AccountInfoVo accountForget(String phone, String password, String checkPassword, Integer role, String code) {
         if (!password.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PASSWORD_ERROR);
         }
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_phone", phone);
-        accountQueryWrapper.eq("a_id", aId);
+        accountQueryWrapper.eq("a_role", role);
         Long count = accountMapper.selectCount(accountQueryWrapper);
         if (count == 0) {
             throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+        }
+        Account accountInfo = this.getOne(accountQueryWrapper);
+        // 验证码
+        String trueCode = redisTemplate.opsForValue().get(VERIFICATION_CODE + accountInfo.getAId());
+        if (!code.equals(trueCode)) {
+            throw new BusinessException(ErrorCode.CODE_ERROR);
         }
         // 修改
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
@@ -186,7 +194,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (updateResult == 0) {
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
-        return new AccountInfoVo(aId, phone, aAvatar);
+        return new AccountInfoVo(accountInfo.getAId(), phone, accountInfo.getAAvatar());
     }
 
     /**
@@ -278,6 +286,32 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         Account accountInfo = this.getOne(accountQueryWrapper);
         return new AccountInfoVo(accountInfo.getAId(), accountInfo.getAPhone(), accountInfo.getAAvatar());
+    }
+
+    /**
+     * 发送样验证码
+     *
+     * @param accountGetCodeRequest 请求参数
+     * @return 是否发送成功
+     */
+    @Override
+    public Boolean pushMsgCode(AccountGetCodeRequest accountGetCodeRequest) {
+        String phone = accountGetCodeRequest.getPhone();
+        Integer role = accountGetCodeRequest.getRole();
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_phone", phone);
+        accountQueryWrapper.eq("a_role", role);
+        Account account = accountMapper.selectOne(accountQueryWrapper);
+        if (account == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        String id = account.getAId();
+        String code = String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
+        // 发送
+        Boolean pushMsg = pushMsgConfig.pushMsg(phone, code);
+        // 保存
+        redisTemplate.opsForValue().set((VERIFICATION_CODE + id), code, VERIFICATION_CODE_TIME);
+        return pushMsg;
     }
 }
 

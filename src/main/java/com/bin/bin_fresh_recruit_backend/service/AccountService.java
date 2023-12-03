@@ -2,6 +2,7 @@ package com.bin.bin_fresh_recruit_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
+import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,12 +40,12 @@ public interface AccountService extends IService<Account> {
     /**
      * 忘记密码
      *
-     * @param request       登录态
+     * @param phone         手机号
      * @param password      密码
      * @param checkPassword 确认密码
      * @return 响应数据
      */
-    AccountInfoVo accountForget(HttpServletRequest request, String password, String checkPassword, Integer role);
+    AccountInfoVo accountForget(String phone, String password, String checkPassword, Integer role, String code);
 
     /**
      * 退出登录
@@ -65,9 +66,18 @@ public interface AccountService extends IService<Account> {
 
     /**
      * 上传头像
+     *
      * @param request 登录态
-     * @param file 文件
+     * @param file    文件
      * @return 响应数据
      */
-    AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file,Integer role);
+    AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role);
+
+    /**
+     * 发送验证吗码
+     *
+     * @param accountGetCodeRequest 请求参数
+     * @return 响应数据
+     */
+    Boolean pushMsgCode(AccountGetCodeRequest accountGetCodeRequest);
 }

@@ -21,4 +21,14 @@ public interface RedisConstant {
      * 学校登录态
      */
     String SCHOOL_LOGIN_STATE = "schoolLoginState";
+
+    /**
+     * 验证码记录
+     */
+    String VERIFICATION_CODE = "verificationCode";
+
+    /**
+     * 验证码超时时间
+     */
+    Long VERIFICATION_CODE_TIME = 5 * 60 * 1000L;
 }

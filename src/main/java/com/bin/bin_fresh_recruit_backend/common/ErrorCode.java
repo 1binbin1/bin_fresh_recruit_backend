@@ -25,6 +25,7 @@ public enum ErrorCode {
     SQL_ERROR(4010,"数据库执行错误"),
     FILE_SIZE_ERROR(4010,"文件太大"),
     SEND_STATE_ERROR(4011,"简历状态码错误"),
+    CODE_ERROR(4012,"验证码错误"),
     ;
 
     /**

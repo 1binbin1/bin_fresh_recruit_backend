@@ -4,6 +4,7 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountLoginRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountRegisterForgetRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
@@ -30,6 +31,7 @@ import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 public class AccountController {
     @Resource
     private AccountService accountService;
+
 
     /**
      * 注册账号 B端C端O端
@@ -89,25 +91,23 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/forget")
-    public BaseResponse<AccountInfoVo> accountForget(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest,
-                                                     HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
+    public BaseResponse<AccountInfoVo> accountForget(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest) {
         if (accountRegisterForgetRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         String password = accountRegisterForgetRequest.getPassword();
         String checkPassword = accountRegisterForgetRequest.getCheckPassword();
         Integer role = accountRegisterForgetRequest.getRole();
+        String phone = accountRegisterForgetRequest.getPhone();
+        String code = accountRegisterForgetRequest.getCode();
         if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
             throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
         // 校验
-        if (StringUtils.isAnyBlank(password, checkPassword)) {
+        if (StringUtils.isAnyBlank(password, checkPassword, phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        AccountInfoVo accountInfoVo = accountService.accountForget(request, password, checkPassword, role);
+        AccountInfoVo accountInfoVo = accountService.accountForget(phone, password, checkPassword, role, code);
         return ResultUtils.success(accountInfoVo);
     }
 
@@ -143,5 +143,20 @@ public class AccountController {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         return ResultUtils.success(accountService.accountUploadAvatar(request, file, role));
+    }
+
+
+    /**
+     * 获取验证码
+     *
+     * @param accountGetCodeRequest 请求参数
+     * @return 响应数据
+     */
+    @PostMapping("/getcode")
+    public BaseResponse<Boolean> pushMsgCode(@RequestBody AccountGetCodeRequest accountGetCodeRequest) {
+        if (accountGetCodeRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return ResultUtils.success(accountService.pushMsgCode(accountGetCodeRequest));
     }
 }
