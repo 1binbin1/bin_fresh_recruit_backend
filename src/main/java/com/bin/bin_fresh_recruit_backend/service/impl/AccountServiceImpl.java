@@ -306,9 +306,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         String id = account.getAId();
-        String code = String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
+        String code = String.valueOf((int) ((Math.random() * 9 + 1) * Math.pow(10, 5)));
         // 发送
-        Boolean pushMsg = pushMsgConfig.pushMsg(phone, code);
+        Boolean pushMsg = null;
+        try {
+            pushMsg = pushMsgConfig.pushMsg(phone, code);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.PUSH_CODE_ERROR, e.getMessage());
+        }
         // 保存
         redisTemplate.opsForValue().set((VERIFICATION_CODE + id), code, VERIFICATION_CODE_TIME);
         return pushMsg;

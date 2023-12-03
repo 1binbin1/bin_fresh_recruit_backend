@@ -49,20 +49,4 @@ logging:
         bin_fresh_recruit_backend:
           mapper: debug
 
-qiniu:
-  # Public key
-  accessKey: AInw755zXpHzJg8xC-ZIbgRwR_0QW7F7FikmrZU_
-  # Private key
-  secretKey: p7YuVGxXvyKszPNthjgfd5nvUraiqu0CvQzAFFsp
-  # Storage space name
-  bucketName: bin-fresh-recruit-backend
-  # Domain name/path
-  path: http://s4pyawr5m.hn-bkt.clouddn.com
-  # The file names stored in the space do not need to be deleted（With diagonal rods["/"]）
-  documentName: bin_fresh_recruit_backend/
-
-danmi:
-  accountId: 1013751
-  accounSid: 057f89606d729d35fa6f764b9270ea90
-  authToken: 1f4eee4d61390a4ece5e2a3475cf36f2
-  danMiApi: https://openapi.danmi.com/distributor/sendSMS
+# Third party service connection replicated locally

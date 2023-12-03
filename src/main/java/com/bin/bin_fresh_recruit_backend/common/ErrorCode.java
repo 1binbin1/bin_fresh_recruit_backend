@@ -26,6 +26,7 @@ public enum ErrorCode {
     FILE_SIZE_ERROR(4010,"文件太大"),
     SEND_STATE_ERROR(4011,"简历状态码错误"),
     CODE_ERROR(4012,"验证码错误"),
+    PUSH_CODE_ERROR(4013,"验证码发送错误"),
     ;
 
     /**

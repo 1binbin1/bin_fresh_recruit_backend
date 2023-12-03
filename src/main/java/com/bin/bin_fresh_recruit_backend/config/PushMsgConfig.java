@@ -1,26 +1,17 @@
 package com.bin.bin_fresh_recruit_backend.config;
 
+import com.aliyun.dysmsapi20170525.models.SendSmsResponse;
+import com.aliyun.tea.TeaException;
+import com.aliyun.teautil.models.RuntimeOptions;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
-import com.bin.bin_fresh_recruit_backend.model.vo.account.CodeVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * 旦米发送验证码
@@ -32,20 +23,31 @@ import java.util.regex.Pattern;
 @Component
 @Configuration
 public class PushMsgConfig {
-    @Value("${danmi.accountId}")
-    private String accountId;
+    @Value("${aliyun.accessKeyId}")
+    private String accessKeyId;
 
-    @Value("${danmi.accounSid}")
-    private String accountSid;
+    @Value("${aliyun.accessKeySecret}")
+    private String accessKeySecret;
 
-    @Value("${danmi.authToken}")
-    private String authToken;
+    @Value("${aliyun.signName}")
+    private String signName;
 
-    @Value("${danmi.danMiApi}")
-    private String api;
+    @Value("${aliyun.templateCode}")
+    private String templateCode;
 
     @Resource
     private RestTemplate restTemplate;
+
+    public static com.aliyun.dysmsapi20170525.Client createClient(String accessKeyId, String accessKeySecret) throws Exception {
+        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
+                // 必填，您的 AccessKey ID
+                .setAccessKeyId(accessKeyId)
+                // 必填，您的 AccessKey Secret
+                .setAccessKeySecret(accessKeySecret);
+        // Endpoint 请参考 https://api.aliyun.com/product/Dysmsapi
+        config.endpoint = "dysmsapi.aliyuncs.com";
+        return new com.aliyun.dysmsapi20170525.Client(config);
+    }
 
     /**
      * 发送短信
@@ -54,24 +56,35 @@ public class PushMsgConfig {
      * @param msg   短信内容
      * @return 是否成功
      */
-    public Boolean pushMsg(String phone, String msg) {
-        String pattern = "^1[3456789]\\d{9}$";
-        if (!Pattern.matches(pattern, phone)) {
-            throw new BusinessException(ErrorCode.PHONE_ERROR);
+    public Boolean pushMsg(String phone, String msg) throws Exception {
+        com.aliyun.dysmsapi20170525.Client client = createClient(accessKeyId, accessKeySecret);
+        com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
+                .setPhoneNumbers(phone)
+                .setSignName(signName)
+                .setTemplateCode(templateCode).
+                setTemplateParam("{\"code\":\"" + msg + "\"}");
+        try {
+            // 复制代码运行请自行打印 API 的返回值
+            SendSmsResponse sendSmsResponse = client.sendSmsWithOptions(sendSmsRequest, new RuntimeOptions());
+            if (sendSmsResponse.getStatusCode() == 200 && "OK".equals(sendSmsResponse.body.message)) {
+                return true;
+            }
+        } catch (TeaException error) {
+            // 错误 message
+            // System.out.println(error.getMessage());
+            // 诊断地址
+            // System.out.println(error.getData().get("Recommend"));
+            com.aliyun.teautil.Common.assertAsString(error.message);
+            throw new BusinessException(ErrorCode.PUSH_CODE_ERROR, error.getMessage());
+        } catch (Exception e) {
+            TeaException error = new TeaException(e.getMessage(), e);
+            // 错误 message
+            // System.out.println(error.getMessage());
+            // 诊断地址
+            // System.out.println(error.getData().get("Recommend"));
+            com.aliyun.teautil.Common.assertAsString(error.message);
+            throw new BusinessException(ErrorCode.PUSH_CODE_ERROR, e.getMessage());
         }
-        long timeMillis = System.currentTimeMillis();
-        String sig = DigestUtils.md5DigestAsHex((accountSid + authToken + timeMillis).getBytes(StandardCharsets.UTF_8));
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("accountSid", accountSid);
-        params.add("smsContent", msg);
-        params.add("to", phone);
-        params.add("timestamp", String.valueOf(timeMillis));
-        params.add("sig", sig);
-        params.add("smsType", String.valueOf(100000));
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, httpHeaders);
-        ResponseEntity<CodeVo> response = restTemplate.postForEntity(api, request, CodeVo.class);
-        return response.getStatusCode().value() == 200 && Objects.equals(response.getBody().getRespCode(), "0000");
+        return false;
     }
 }
