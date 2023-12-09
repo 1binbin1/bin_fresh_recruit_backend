@@ -53,16 +53,16 @@ public class PushMsgConfig {
      * 发送短信
      *
      * @param phone 手机号
-     * @param msg   短信内容
+     * @param code   短信内容
      * @return 是否成功
      */
-    public Boolean pushMsg(String phone, String msg) throws Exception {
+    public Boolean pushMsg(String phone, String code) throws Exception {
         com.aliyun.dysmsapi20170525.Client client = createClient(accessKeyId, accessKeySecret);
         com.aliyun.dysmsapi20170525.models.SendSmsRequest sendSmsRequest = new com.aliyun.dysmsapi20170525.models.SendSmsRequest()
                 .setPhoneNumbers(phone)
                 .setSignName(signName)
                 .setTemplateCode(templateCode).
-                setTemplateParam("{\"code\":\"" + msg + "\"}");
+                setTemplateParam("{\"code\":\"" + code + "\"}");
         try {
             // 复制代码运行请自行打印 API 的返回值
             SendSmsResponse sendSmsResponse = client.sendSmsWithOptions(sendSmsRequest, new RuntimeOptions());

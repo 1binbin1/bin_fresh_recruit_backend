@@ -308,7 +308,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         String id = account.getAId();
         String code = String.valueOf((int) ((Math.random() * 9 + 1) * Math.pow(10, 5)));
         // 发送
-        Boolean pushMsg = null;
+        Boolean pushMsg;
         try {
             pushMsg = pushMsgConfig.pushMsg(phone, code);
         } catch (Exception e) {
