@@ -155,12 +155,13 @@ DROP TABLE IF EXISTS t_school_intro;
 CREATE TABLE t_school_intro
 (
     id            INT                                    NOT NULL AUTO_INCREMENT COMMENT 'id',
-    intro_content VARCHAR(255) default ''                NOT NULL COMMENT '咨询内容',
+    title         VARCHAR(32)  default ''                NOT NULL COMMENT '标题',
+    intro_content VARCHAR(1024) default ''                NOT NULL COMMENT '资讯内容',
     create_time   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete     tinyint      default 0                 not null comment '是否删除，0-否，1-是',
     PRIMARY KEY (id)
-) COMMENT = '就业咨询信息表';
+) COMMENT = '就业资讯信息表';
 
 DROP TABLE IF EXISTS t_fresh_com_send;
 CREATE TABLE t_fresh_com_send

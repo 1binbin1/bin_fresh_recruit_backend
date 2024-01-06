@@ -1,18 +1,22 @@
 package com.bin.bin_fresh_recruit_backend.model.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 就业咨询信息表
+ *
  * @TableName t_school_intro
  */
-@TableName(value ="t_school_intro")
+@TableName(value = "t_school_intro")
 @Data
 public class SchoolIntro implements Serializable {
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -20,7 +24,13 @@ public class SchoolIntro implements Serializable {
     private Integer id;
 
     /**
-     * 咨询内容
+     * 标题
+     */
+    @TableField(value = "title")
+    private String title;
+
+    /**
+     * 资讯内容
      */
     @TableField(value = "intro_content")
     private String introContent;
@@ -43,7 +53,4 @@ public class SchoolIntro implements Serializable {
     @TableField(value = "is_delete")
     @TableLogic
     private Integer isDelete;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }
