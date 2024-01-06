@@ -33,10 +33,10 @@ public class Chat implements Serializable {
     private String comId;
 
     /**
-     * 聊天ID
+     * 发起人类型
      */
-    @TableField(value = "chat_id")
-    private String chatId;
+    @TableField(value = "user_type")
+    private Integer userType;
 
     /**
      * 聊天内容

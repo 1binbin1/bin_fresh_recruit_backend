@@ -89,4 +89,20 @@ public interface CommonConstant {
      * 额外匹配个数
      */
     Integer MATCH_NUM = 2;
+
+    /**
+     * 获取聊天记录天数
+     */
+    Integer CHAT_DATES = 30;
+
+    /**
+     * 发起聊天类型-应届生
+     */
+    Integer CHAT_USER_FRESH = 1;
+
+    /**
+     * 发起聊天类型-企业
+     */
+    Integer CHAT_USER_COM = 2;
+
 }
