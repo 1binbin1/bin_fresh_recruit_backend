@@ -10,4 +10,19 @@ public interface DictConstant {
      * 岗位类别
      */
     Integer DICT_JOB_TYPE = 0;
+
+    /**
+     * 薪资范围
+     */
+    Integer DICT_PAY_TYPE = 1;
+
+    /**
+     * 主要城市
+     */
+    Integer DICT_CITY_TYPE = 2;
+
+    /**
+     * 岗位名称
+     */
+    Integer DICT_JOB_NAME = 3;
 }

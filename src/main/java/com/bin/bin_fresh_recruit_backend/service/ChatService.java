@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
 * @author hongxiaobin
@@ -22,4 +23,13 @@ public interface ChatService extends IService<Chat> {
      * @return 响应
      */
     ChatVo addChat(HttpServletRequest request, String aId, String content, Integer userType);
+
+    /**
+     * 获取聊天记录
+     * @param aId 账号ID
+     * @param request 登录态
+     * @param userType 发起人
+     * @return
+     */
+    List<ChatVo> getChatList(String aId, HttpServletRequest request, Integer userType);
 }

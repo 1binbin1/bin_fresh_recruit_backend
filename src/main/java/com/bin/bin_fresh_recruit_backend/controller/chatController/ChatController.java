@@ -11,13 +11,11 @@ import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
 import com.bin.bin_fresh_recruit_backend.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 聊天相关控制器
@@ -68,5 +66,43 @@ public class ChatController {
         }
         ChatVo chatVo = chatService.addChat(request, userId, content, CommonConstant.CHAT_USER_FRESH);
         return ResultUtils.success(chatVo);
+    }
+
+    /**
+     * 应届生获取聊天记录
+     *
+     * @param comId   企业ID
+     * @param request 登录态
+     * @return 响应
+     */
+    @GetMapping("/get/fresh")
+    public BaseResponse<List<ChatVo>> getChatByFresh(@RequestParam("com_id") String comId, HttpServletRequest request) {
+        if (request != null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (StringUtils.isAnyBlank(comId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<ChatVo> chatVos = chatService.getChatList(comId, request, CommonConstant.CHAT_USER_FRESH);
+        return ResultUtils.success(chatVos);
+    }
+
+    /**
+     * 企业获取聊天记录
+     *
+     * @param userId  用户ID
+     * @param request 登录态
+     * @return 响应
+     */
+    @GetMapping("/get/com")
+    public BaseResponse<List<ChatVo>> getChatByCom(@RequestParam("user_id") String userId, HttpServletRequest request) {
+        if (request != null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (StringUtils.isAnyBlank(userId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<ChatVo> chatVos = chatService.getChatList(userId, request, CommonConstant.CHAT_USER_COM);
+        return ResultUtils.success(chatVos);
     }
 }
