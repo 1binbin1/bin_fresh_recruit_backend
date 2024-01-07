@@ -23,8 +23,6 @@ import javax.annotation.Resource;
 @Service
 public class SchoolIntroServiceImpl extends ServiceImpl<SchoolIntroMapper, SchoolIntro>
         implements SchoolIntroService {
-    @Resource
-    private SchoolIntroMapper schoolIntroMapper;
 
     @Override
     public SchoolIntroVo publishMessage(PublishMessageRequest publishMessageRequest) {
