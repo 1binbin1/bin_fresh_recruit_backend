@@ -2,6 +2,7 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.SchoolIntroMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.SchoolIntro;
@@ -31,6 +32,9 @@ public class SchoolIntroServiceImpl extends ServiceImpl<SchoolIntroMapper, Schoo
         String message = publishMessageRequest.getMessage();
         if (StringUtils.isAnyBlank(title, message)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (title.length() > RequestConstant.TITLE_MAX_LENGTH || message.length() > RequestConstant.TEXT_MAX_LENGTH) {
+            throw new BusinessException(ErrorCode.SIZE_ERROR);
         }
         // 保存
         SchoolIntro schoolIntro = new SchoolIntro();

@@ -19,10 +19,8 @@ public class PublishMessageRequest implements Serializable {
     private static final long serialVersionUID = -3328874506761688433L;
 
     @JsonProperty(value = "title")
-    @Size(max = RequestConstant.TITLE_MAX_LENGTH)
     private String title;
 
     @JsonProperty(value = "message")
-    @Size(max = RequestConstant.TEXT_MAX_LENGTH)
     private String message;
 }
