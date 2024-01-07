@@ -105,4 +105,13 @@ public interface CommonConstant {
      */
     Integer CHAT_USER_COM = 2;
 
+    /**
+     * 未删除
+     */
+    Integer NO_DELETE = 0;
+
+    /**
+     * 已删除
+     */
+    Integer YES_DELETE = 1;
 }

@@ -109,7 +109,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         freshResumeQueryWrapper.eq("resume_id", resumeId);
         int delete = freshResumeMapper.delete(freshResumeQueryWrapper);
         if (delete == 0) {
-            throw new BusinessException(ErrorCode.SQL_ERROR);
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         return resumeId;
     }
@@ -152,7 +152,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         freshResume.setResumeName(fileName);
         boolean update = this.update(freshResume, freshResumeQueryWrapper);
         if (!update) {
-            throw new BusinessException(ErrorCode.SQL_ERROR);
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         FreshResume resume = this.getOne(freshResumeQueryWrapper);
         ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
@@ -203,6 +203,9 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         freshResumeQueryWrapper.eq("resume_id", resumeId);
         FreshResume freshResume = this.getOne(freshResumeQueryWrapper);
         ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
+        if (freshResume == null){
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
+        }
         BeanUtils.copyProperties(freshResume, resumeInfoVo);
         return resumeInfoVo;
     }

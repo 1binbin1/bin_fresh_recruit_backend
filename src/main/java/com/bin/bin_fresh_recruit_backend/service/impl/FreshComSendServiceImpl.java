@@ -1,18 +1,19 @@
 package com.bin.bin_fresh_recruit_backend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.FreshComSendMapper;
-import com.bin.bin_fresh_recruit_backend.model.domain.Account;
-import com.bin.bin_fresh_recruit_backend.model.domain.FreshComSend;
+import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
-import com.bin.bin_fresh_recruit_backend.service.AccountService;
-import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
+import com.bin.bin_fresh_recruit_backend.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -36,6 +37,16 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
     @Resource
     private AccountService accountService;
 
+    @Resource
+    private CompanyInfoService companyInfoService;
+
+    @Resource
+    private JobInfoService jobInfoService;
+
+    @Resource
+    private FreshResumeService freshResumeService;
+
+
     /**
      * 投递简历
      *
@@ -56,6 +67,37 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         if (StringUtils.isAnyBlank(userId, comId, jobId, resumeId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+        // 验证三个id是否存在
+        QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
+        companyInfoQueryWrapper.eq("com_id", comId);
+        CompanyInfo companyInfo = companyInfoService.getOne(companyInfoQueryWrapper);
+        if (companyInfo == null) {
+            throw new BusinessException(ErrorCode.NO_COMPANY_ERROR);
+        }
+        QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+        jobInfoQueryWrapper.eq("job_id", jobId);
+        jobInfoQueryWrapper.eq("com_id", comId);
+        JobInfo jobInfo = jobInfoService.getOne(jobInfoQueryWrapper);
+        if (jobInfo == null) {
+            throw new BusinessException(ErrorCode.NO_JOB_ERROR);
+        }
+        QueryWrapper<FreshResume> freshResumeQueryWrapper = new QueryWrapper<>();
+        freshResumeQueryWrapper.eq("user_id", userId);
+        freshResumeQueryWrapper.eq("resume_id", resumeId);
+        FreshResume resumeServiceOne = freshResumeService.getOne(freshResumeQueryWrapper);
+        if (resumeServiceOne == null) {
+            throw new BusinessException(ErrorCode.NO_RESUME_ERROR);
+        }
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.eq("user_id",userId);
+        freshComSendQueryWrapper.eq("com_id",comId);
+        freshComSendQueryWrapper.eq("job_id",jobId);
+        freshComSendQueryWrapper.eq("resume_id",resumeId);
+        freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
+        FreshComSend comSend = this.getOne(freshComSendQueryWrapper);
+        if (comSend != null) {
+            throw new BusinessException(ErrorCode.SEND_RESUME_ERROR);
+        }
         FreshComSend freshComSend = new FreshComSend();
         freshComSend.setUserId(userId);
         freshComSend.setComId(comId);
@@ -67,6 +109,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
+        freshComSend = this.getById(freshComSend.getId());
         FreshComSendVo freshComSendVo = new FreshComSendVo();
         BeanUtils.copyProperties(freshComSend, freshComSendVo);
         return freshComSendVo;

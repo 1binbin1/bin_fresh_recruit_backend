@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.JOB_ID;
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.RECOMMEND_NO;
@@ -127,7 +124,11 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfoQueryWrapper.eq("com_id", comId);
         boolean update = this.update(jobInfo, jobInfoQueryWrapper);
         if (!update) {
-            throw new BusinessException(ErrorCode.SQL_ERROR);
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
+        }
+        jobInfo = this.getOne(jobInfoQueryWrapper);
+        if (jobInfo == null){
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         JobInfoVo jobInfoVo = new JobInfoVo();
         BeanUtils.copyProperties(jobInfo, jobInfoVo);
@@ -158,7 +159,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfoQueryWrapper.eq("com_id", comId);
         boolean remove = this.remove(jobInfoQueryWrapper);
         if (!remove) {
-            throw new BusinessException(ErrorCode.SQL_ERROR);
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         return jobId;
     }
@@ -244,10 +245,16 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         // 查询企业
         QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
         companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
-        companyInfoQueryWrapper.eq("com_sum", jobSearchRequest.getComNum());
-        companyInfoQueryWrapper.eq("com_address", jobSearchRequest.getComAddress());
+        companyInfoQueryWrapper.like("com_num", jobSearchRequest.getComNum());
+        companyInfoQueryWrapper.like("com_address", jobSearchRequest.getComAddress());
         companyInfoQueryWrapper.like("com_name", jobSearchRequest.getSearchContent());
         List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
+        PageVo<JobInfoVo> result = new PageVo<>();
+        ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
+        if (companyInfos==null || companyInfos.size() == 0){
+            result.setList(jobInfoVos);
+            return result;
+        }
         // 提取comId
         List<String> comIds = new ArrayList<>();
         for (CompanyInfo companyInfo : companyInfos) {
@@ -261,8 +268,6 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfoQueryWrapper.in("com_id", comIds);
         Page<JobInfo> jobInfoPage = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
         // 处理结果
-        ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
-        PageVo<JobInfoVo> result = new PageVo<>();
         for (JobInfo jobInfo : jobInfoPage.getRecords()) {
             JobInfoVo jobInfoVo = new JobInfoVo();
             BeanUtils.copyProperties(jobInfo, jobInfoVo);
@@ -271,7 +276,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         result.setList(jobInfoVos);
         result.setTotal(jobInfoPage.getTotal());
         result.setCurrent(jobInfoPage.getCurrent());
-        result.setPageSize(jobInfoPage.getPages());
+        result.setPageSize(jobInfoPage.getSize());
         return result;
     }
 
@@ -291,9 +296,8 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         long pageSize = jobComSearchRequest.getPageSize();
         String searchContent = jobComSearchRequest.getSearchContent();
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
-        jobInfoQueryWrapper.eq("con_id", comId);
-        jobInfoQueryWrapper.like("job_name", searchContent);
-        jobInfoQueryWrapper.like("job_type", searchContent);
+        jobInfoQueryWrapper.eq("com_id", comId);
+        jobInfoQueryWrapper.and(j -> j.like("job_name", searchContent).or().like("job_type", searchContent));
         Page<JobInfo> page = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
         PageVo<JobInfoVo> jobInfoPageVo = new PageVo<>();
         List<JobInfoVo> jobInfoVos = new ArrayList<>();
@@ -305,7 +309,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfoPageVo.setList(jobInfoVos);
         jobInfoPageVo.setTotal(page.getTotal());
         jobInfoPageVo.setCurrent(page.getCurrent());
-        jobInfoPageVo.setPageSize(page.getPages());
+        jobInfoPageVo.setPageSize(page.getSize());
         return jobInfoPageVo;
     }
 
@@ -370,13 +374,21 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
             dictType.add(dict.getDictContent());
         }
         // 查找相似
+        // TODO hongxiaobin 2024/1/7 18:13 验证推荐效果
         List<String> recommendTypeList = AlgorithmUtils.getRecommendTypeList(freshType, dictType);
+        List<String> recommend = new ArrayList<>();
+        for (String s : recommendTypeList) {
+            String[] strings = s.split("/");
+            recommend.addAll(Arrays.asList(strings));
+        }
 
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
-        jobInfoQueryWrapper.in("job_type", recommendTypeList);
+        for (String str : recommend) {
+            jobInfoQueryWrapper.or().like("job_type", str).or().like("job_name", str).or().like("job_intro", str);
+        }
         Random random = new Random();
         long count = this.count(jobInfoQueryWrapper);
-        Page<JobInfo> infoPage = new Page<>(random.nextInt((int) count) - limit, limit);
+        Page<JobInfo> infoPage = new Page<>(1, limit);
         return this.page(infoPage, jobInfoQueryWrapper);
     }
 }

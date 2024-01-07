@@ -25,4 +25,9 @@ public interface DictConstant {
      * 岗位名称
      */
     Integer DICT_JOB_NAME = 3;
+
+    /**
+     * 学历
+     */
+    Integer DICT_EDUCATION = 4;
 }

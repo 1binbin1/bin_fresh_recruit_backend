@@ -29,6 +29,11 @@ public enum ErrorCode {
     SEND_STATE_ERROR(4011, "简历状态码错误"),
     CODE_ERROR(4012, "验证码错误"),
     PUSH_CODE_ERROR(4013, "验证码发送错误"),
+    NO_RESOURCE_ERROR(4015, "该账号不存在该资源"),
+    NO_COMPANY_ERROR(4016, "企业不存在"),
+    NO_JOB_ERROR(4017, "岗位不存在"),
+    NO_RESUME_ERROR(4018, "简历不存在"),
+    SEND_RESUME_ERROR(4019, "投递记录已存在"),
     ;
 
     /**

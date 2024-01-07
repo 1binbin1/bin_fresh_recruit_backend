@@ -53,7 +53,7 @@ public class FreshInfoController {
      * @return 响应数据
      */
     @GetMapping("/one")
-    public BaseResponse<FreshInfoVo> getOneFreshInfo(@RequestParam("user_ID") String userId) {
+    public BaseResponse<FreshInfoVo> getOneFreshInfo(@RequestParam("user_id") String userId) {
         if (userId == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
