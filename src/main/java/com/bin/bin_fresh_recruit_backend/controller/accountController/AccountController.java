@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.account.AccountLoginOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountLoginRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountRegisterForgetRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
@@ -118,11 +119,14 @@ public class AccountController {
      * @return 响应数据
      */
     @PostMapping("/loginout")
-    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request, @RequestBody Integer role) {
+    public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request, @RequestBody AccountLoginOutRequest accountLoginOutRequest) {
+        if (accountLoginOutRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request, role);
+        AccountInfoVo accountInfoVo = accountService.accountLoginOut(request, accountLoginOutRequest.getRole());
         return ResultUtils.success(accountInfoVo);
     }
 

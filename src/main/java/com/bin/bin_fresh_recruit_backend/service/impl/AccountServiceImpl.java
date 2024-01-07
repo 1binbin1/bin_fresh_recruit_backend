@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
+import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
 import com.bin.bin_fresh_recruit_backend.mapper.CompanyInfoMapper;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
@@ -103,7 +105,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 保存信息
         switch (role) {
             case SCHOOL_ROLE:
-                break;
+                return new AccountInfoVo(id, phone, "");
             case FRESH_ROLE:
                 // 应届生
                 FreshUserInfo freshUserInfo = new FreshUserInfo();
@@ -182,7 +184,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         Account accountInfo = this.getOne(accountQueryWrapper);
         // 验证码
-        String trueCode = redisTemplate.opsForValue().get(VERIFICATION_CODE + accountInfo.getAId());
+        String trueCode = redisTemplate.opsForValue().get(FORGET_VERIFICATION_CODE + accountInfo.getAId());
         if (!code.equals(trueCode)) {
             throw new BusinessException(ErrorCode.CODE_ERROR);
         }
@@ -289,7 +291,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     }
 
     /**
-     * 发送样验证码
+     * 发送验证码
      *
      * @param accountGetCodeRequest 请求参数
      * @return 是否发送成功
@@ -298,6 +300,23 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     public Boolean pushMsgCode(AccountGetCodeRequest accountGetCodeRequest) {
         String phone = accountGetCodeRequest.getPhone();
         Integer role = accountGetCodeRequest.getRole();
+        Integer type = accountGetCodeRequest.getType();
+        if (type == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!type.equals(RequestConstant.FORGET) && !type.equals(RequestConstant.LOGIN) && !type.equals(RequestConstant.REGISTER)) {
+            throw new BusinessException(ErrorCode.TYPE_ERROR);
+        }
+        String redisKey = "";
+        if (type.equals(RequestConstant.FORGET)) {
+            redisKey = FORGET_VERIFICATION_CODE;
+        }
+        if (type.equals(RequestConstant.LOGIN)) {
+            redisKey = LOGIN_VERIFICATION_CODE;
+        }
+        if (type.equals(RequestConstant.REGISTER)) {
+            redisKey = REGISTER_VERIFICATION_CODE;
+        }
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_phone", phone);
         accountQueryWrapper.eq("a_role", role);
@@ -315,7 +334,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.PUSH_CODE_ERROR, e.getMessage());
         }
         // 保存
-        redisTemplate.opsForValue().set((VERIFICATION_CODE + id), code, VERIFICATION_CODE_TIME);
+        redisTemplate.opsForValue().set((redisKey + id), code, VERIFICATION_CODE_TIME, TimeUnit.MILLISECONDS);
+
         return pushMsg;
     }
 }

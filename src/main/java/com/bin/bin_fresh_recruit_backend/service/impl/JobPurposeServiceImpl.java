@@ -66,6 +66,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         if (insert == 0) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
+        jobPurpose = this.getById(jobPurpose.getId());
         JobPurposeVo jobPurposeVo = new JobPurposeVo();
         BeanUtils.copyProperties(jobPurpose, jobPurposeVo);
         return jobPurposeVo;
@@ -101,6 +102,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         if (!updateById) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
+        jobPurpose = this.getById(jobPurpose.getId());
         JobPurposeVo jobPurposeVo = new JobPurposeVo();
         BeanUtils.copyProperties(jobPurpose, jobPurposeVo);
         return jobPurposeVo;
@@ -127,7 +129,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         jobPurposeQueryWrapper.eq("user_id", userId);
         boolean remove = this.remove(jobPurposeQueryWrapper);
         if (!remove) {
-            throw new BusinessException(ErrorCode.SQL_ERROR);
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         return id;
     }
@@ -174,6 +176,9 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         }
         JobPurpose jobPurpose = this.getById(jobId);
         JobPurposeVo jobPurposeVo = new JobPurposeVo();
+        if (jobPurpose==null){
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
+        }
         BeanUtils.copyProperties(jobPurpose, jobPurposeVo);
         return jobPurposeVo;
     }

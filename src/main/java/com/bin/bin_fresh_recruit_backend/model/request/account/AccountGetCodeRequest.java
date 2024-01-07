@@ -28,4 +28,9 @@ public class AccountGetCodeRequest implements Serializable {
     @JsonProperty("role")
     private Integer role;
 
+    /**
+     * 发送类型 0-忘记密码 1-登录 2-注册
+     */
+    @JsonProperty("type")
+    private Integer type;
 }

@@ -95,7 +95,7 @@ CREATE TABLE t_dict
 (
     id           INT                                    NOT NULL AUTO_INCREMENT COMMENT 'id',
     dict_content VARCHAR(255) default ''                NOT NULL COMMENT '字典内容',
-    dict_type    INT          default 0                 NOT NULL COMMENT '字典类型 0-岗位类别 1-薪资范围 2-主要城市 3-岗位名称',
+    dict_type    INT          default 0                 NOT NULL COMMENT '字典类型 0-岗位类别 1-薪资范围 2-主要城市 3-岗位名称 4-学历',
     create_time  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete    tinyint      default 0                 not null comment '是否删除，0-否，1-是',

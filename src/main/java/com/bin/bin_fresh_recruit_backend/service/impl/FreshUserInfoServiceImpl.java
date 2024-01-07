@@ -81,7 +81,7 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
         if (StringUtils.isAnyBlank(userName, userEmail, userSchool, userMajor, userYear, userEducation)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        if (MAN != userSex || WOMAN != userSex) {
+        if (MAN != userSex && WOMAN != userSex) {
             throw new BusinessException(ErrorCode.USER_SEX_ERROR);
         }
         Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);

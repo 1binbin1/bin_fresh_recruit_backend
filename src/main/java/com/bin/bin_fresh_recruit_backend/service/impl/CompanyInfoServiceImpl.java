@@ -13,6 +13,7 @@ import com.bin.bin_fresh_recruit_backend.model.vo.company.CompanyVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.CompanyInfoService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,9 @@ public class CompanyInfoServiceImpl extends ServiceImpl<CompanyInfoMapper, Compa
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
+        if (companyInfoRequest==null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
         String comPhone = companyInfoRequest.getComPhone();
         // 校验手机号
         String pattern = "^1[3456789]\\d{9}$";
@@ -56,6 +60,7 @@ public class CompanyInfoServiceImpl extends ServiceImpl<CompanyInfoMapper, Compa
         }
         // 更新企业信息
         CompanyInfo companyInfo = new CompanyInfo();
+        BeanUtils.copyProperties(companyInfoRequest, companyInfo);
         QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
         String comId = loginInfo.getAId();
         companyInfoQueryWrapper.eq("com_id", comId);
@@ -63,6 +68,7 @@ public class CompanyInfoServiceImpl extends ServiceImpl<CompanyInfoMapper, Compa
         if (!update) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
+        companyInfo.setComId(comId);
         // 更新账号信息中的的手机号
         Account account = new Account();
         account.setAPhone(comPhone);
@@ -89,6 +95,9 @@ public class CompanyInfoServiceImpl extends ServiceImpl<CompanyInfoMapper, Compa
         companyInfoQueryWrapper.eq("com_id", comId);
         CompanyInfo companyInfo = this.getOne(companyInfoQueryWrapper);
         CompanyVo companyVo = new CompanyVo();
+        if (companyInfo==null){
+            throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
+        }
         BeanUtils.copyProperties(companyInfo, companyVo);
         // 补充头像
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
