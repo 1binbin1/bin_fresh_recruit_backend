@@ -334,9 +334,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.PUSH_CODE_ERROR, e.getMessage());
         }
         // 保存
-        if (pushMsg) {
-            redisTemplate.opsForValue().set((redisKey + id), code, VERIFICATION_CODE_TIME, TimeUnit.MILLISECONDS);
-        }
+        redisTemplate.opsForValue().set((redisKey + id), code, VERIFICATION_CODE_TIME, TimeUnit.MILLISECONDS);
+
         return pushMsg;
     }
 }
