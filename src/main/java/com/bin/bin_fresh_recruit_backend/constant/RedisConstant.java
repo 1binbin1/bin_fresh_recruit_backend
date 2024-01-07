@@ -23,9 +23,19 @@ public interface RedisConstant {
     String SCHOOL_LOGIN_STATE = "schoolLoginState";
 
     /**
-     * 验证码记录
+     * 忘记密码验证码记录
      */
-    String VERIFICATION_CODE = "verificationCode";
+    String FORGET_VERIFICATION_CODE = "forgetVerificationCode";
+
+    /**
+     * 登录验证码
+     */
+    String LOGIN_VERIFICATION_CODE = "loginVerificationCode";
+
+    /**
+     * 注册验证码
+     */
+    String REGISTER_VERIFICATION_CODE = "registerVerificationCode";
 
     /**
      * 验证码超时时间
