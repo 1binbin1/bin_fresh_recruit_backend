@@ -84,7 +84,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         Account account = getAccountByUserType(request, userType);
         // 获取时间范围
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now().plusDays(1);
         LocalDate lastDate = now.minusDays(CommonConstant.CHAT_DATES);
         String nowDateString = now.format(formatter);
         String lastDateString = lastDate.format(formatter);
@@ -105,7 +105,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         chatQueryWrapper.eq("com_id", comId);
         chatQueryWrapper.between("create_time", lastDateString, nowDateString);
         List<Chat> chatList = this.list(chatQueryWrapper);
-        if (chatList != null) {
+        if (chatList == null) {
             return new ArrayList<>();
         }
         // 组装
