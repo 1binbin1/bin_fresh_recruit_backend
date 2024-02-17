@@ -64,7 +64,7 @@ public class ChatController {
         if (StringUtils.isAnyBlank(userId, content)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        ChatVo chatVo = chatService.addChat(request, userId, content, CommonConstant.CHAT_USER_FRESH);
+        ChatVo chatVo = chatService.addChat(request, userId, content, CommonConstant.CHAT_USER_COM);
         return ResultUtils.success(chatVo);
     }
 
@@ -77,7 +77,7 @@ public class ChatController {
      */
     @GetMapping("/get/fresh")
     public BaseResponse<List<ChatVo>> getChatByFresh(@RequestParam("com_id") String comId, HttpServletRequest request) {
-        if (request != null) {
+        if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (StringUtils.isAnyBlank(comId)) {
@@ -96,7 +96,7 @@ public class ChatController {
      */
     @GetMapping("/get/com")
     public BaseResponse<List<ChatVo>> getChatByCom(@RequestParam("user_id") String userId, HttpServletRequest request) {
-        if (request != null) {
+        if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (StringUtils.isAnyBlank(userId)) {
