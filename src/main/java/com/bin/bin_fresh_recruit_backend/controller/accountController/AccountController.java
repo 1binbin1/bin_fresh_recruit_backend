@@ -35,7 +35,7 @@ public class AccountController {
 
 
     /**
-     * 注册账号 B端C端O端
+     * 注册账号 C端O端
      *
      * @param accountRegisterForgetRequest 请求参数
      * @return 响应数据
@@ -53,7 +53,7 @@ public class AccountController {
         if (StringUtils.isAnyBlank(phone, password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
+        if ((SCHOOL_ROLE != role) && (COMPANY_ROLE != role)) {
             throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
         AccountInfoVo accountInfoVo = accountService.accountRegister(phone, password, checkPassword, role);

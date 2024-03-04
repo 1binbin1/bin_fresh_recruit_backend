@@ -20,6 +20,12 @@ public class FreshInfoRequest implements Serializable {
     private String userName;
 
     /**
+     * 用户手机号
+     */
+    @JsonProperty("user_phone")
+    private String userPhone;
+
+    /**
      * 性别 0-男 1-女
      */
     @JsonProperty("user_sex")

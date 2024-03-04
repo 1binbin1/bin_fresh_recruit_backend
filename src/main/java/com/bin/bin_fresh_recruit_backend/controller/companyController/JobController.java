@@ -105,15 +105,15 @@ public class JobController {
     /**
      * 查询岗位信息
      *
-     * @param jobInfoIdRequest 请求参数
+     * @param jobId 岗位ID
      * @return 返回参数
      */
     @GetMapping("/one")
-    public BaseResponse<JobInfoVo> getJobOne(@RequestBody JobInfoIdRequest jobInfoIdRequest) {
-        if (jobInfoIdRequest == null) {
+    public BaseResponse<JobInfoVo> getJobOne(@RequestParam(value = "job_id") String jobId) {
+        if (jobId == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        JobInfoVo jobInfoVo = jobInfoService.getJobOne(jobInfoIdRequest);
+        JobInfoVo jobInfoVo = jobInfoService.getJobOne(jobId);
         return ResultUtils.success(jobInfoVo);
     }
 

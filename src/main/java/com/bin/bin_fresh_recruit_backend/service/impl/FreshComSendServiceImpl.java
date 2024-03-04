@@ -13,12 +13,12 @@ import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
 
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
@@ -33,6 +33,9 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
 
     @Resource
     private FreshComSendMapper freshComSendMapper;
+
+    @Resource
+    private FreshComSendService freshComSendService;
 
     @Resource
     private AccountService accountService;
@@ -89,13 +92,12 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
             throw new BusinessException(ErrorCode.NO_RESUME_ERROR);
         }
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
-        freshComSendQueryWrapper.eq("user_id",userId);
-        freshComSendQueryWrapper.eq("com_id",comId);
-        freshComSendQueryWrapper.eq("job_id",jobId);
-        freshComSendQueryWrapper.eq("resume_id",resumeId);
+        freshComSendQueryWrapper.eq("user_id", userId);
+        freshComSendQueryWrapper.eq("com_id", comId);
+        freshComSendQueryWrapper.eq("job_id", jobId);
         freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
-        FreshComSend comSend = this.getOne(freshComSendQueryWrapper);
-        if (comSend != null) {
+        List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
+        if (freshComSends != null && freshComSends.size() > 0) {
             throw new BusinessException(ErrorCode.SEND_RESUME_ERROR);
         }
         FreshComSend freshComSend = new FreshComSend();

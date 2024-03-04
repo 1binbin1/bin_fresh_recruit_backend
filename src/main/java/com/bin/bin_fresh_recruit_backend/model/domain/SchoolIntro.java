@@ -24,6 +24,12 @@ public class SchoolIntro implements Serializable {
     private Integer id;
 
     /**
+     * 学校ID
+     */
+    @TableField(value = "school_id")
+    private String schoolId;
+
+    /**
      * 标题
      */
     @TableField(value = "title")

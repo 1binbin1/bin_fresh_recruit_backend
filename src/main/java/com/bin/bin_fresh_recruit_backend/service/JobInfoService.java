@@ -56,10 +56,10 @@ public interface JobInfoService extends IService<JobInfo> {
     /**
      * 查询岗位单个信息
      *
-     * @param jobInfoIdRequest 请求参数
+     * @param jobId 请求参数
      * @return 岗位信息
      */
-    JobInfoVo getJobOne(JobInfoIdRequest jobInfoIdRequest);
+    JobInfoVo getJobOne(String jobId);
 
     /**
      * 岗位信息列表

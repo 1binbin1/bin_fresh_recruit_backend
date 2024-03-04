@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
+import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.constant.DictConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.*;
@@ -127,7 +128,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
             throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         jobInfo = this.getOne(jobInfoQueryWrapper);
-        if (jobInfo == null){
+        if (jobInfo == null) {
             throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         JobInfoVo jobInfoVo = new JobInfoVo();
@@ -199,6 +200,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         freshComSendQueryWrapper.eq("com_id", comId);
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.eq("job_id", jobId);
+        freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
         FreshComSend freshComSend = new FreshComSend();
         freshComSend.setSendState(sendState);
         int update = freshComSendMapper.update(freshComSend, freshComSendQueryWrapper);
@@ -214,12 +216,11 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
     /**
      * 查询单个岗位信息
      *
-     * @param jobInfoIdRequest 请求参数
+     * @param jobId 请求参数
      * @return 岗位信息
      */
     @Override
-    public JobInfoVo getJobOne(JobInfoIdRequest jobInfoIdRequest) {
-        String jobId = jobInfoIdRequest.getJobId();
+    public JobInfoVo getJobOne(String jobId) {
         if (StringUtils.isAnyBlank(jobId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
@@ -251,7 +252,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
         PageVo<JobInfoVo> result = new PageVo<>();
         ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
-        if (companyInfos==null || companyInfos.size() == 0){
+        if (companyInfos == null || companyInfos.size() == 0) {
             result.setList(jobInfoVos);
             return result;
         }
