@@ -14,6 +14,7 @@ import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -69,6 +70,7 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
      * @return 响应数据
      */
     @Override
+    @Transactional
     public FreshInfoVo updateFreshInfo(HttpServletRequest request, FreshInfoRequest freshInfoRequest) {
         // 判断参数
         String userName = freshInfoRequest.getUserName();
@@ -78,7 +80,8 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
         String userMajor = freshInfoRequest.getUserMajor();
         String userYear = freshInfoRequest.getUserYear();
         String userEducation = freshInfoRequest.getUserEducation();
-        if (StringUtils.isAnyBlank(userName, userEmail, userSchool, userMajor, userYear, userEducation)) {
+        String userPhone = freshInfoRequest.getUserPhone();
+        if (StringUtils.isAnyBlank(userName, userEmail, userSchool, userMajor, userYear, userEducation, userPhone)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         if (MAN != userSex && WOMAN != userSex) {
@@ -92,7 +95,13 @@ public class FreshUserInfoServiceImpl extends ServiceImpl<FreshUserInfoMapper, F
         QueryWrapper<FreshUserInfo> freshUserInfoQueryWrapper = new QueryWrapper<>();
         freshUserInfoQueryWrapper.eq("user_id", userId);
         int update = freshUserInfoMapper.update(freshUserInfo, freshUserInfoQueryWrapper);
-        if (update == 0) {
+        // 更新账号中的手机号
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", userId);
+        Account account = new Account();
+        account.setAPhone(userPhone);
+        boolean updatePhone = accountService.update(account, accountQueryWrapper);
+        if (!updatePhone || update == 0) {
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
         // 回显

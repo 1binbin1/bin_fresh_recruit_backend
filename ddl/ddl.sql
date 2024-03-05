@@ -9,6 +9,7 @@ CREATE TABLE t_account
     a_phone     varchar(16)  default ''                not null comment '手机号',
     a_password  VARCHAR(32)  default ''                NOT NULL COMMENT '密码',
     a_role      INT          default 0                 NOT NULL COMMENT '角色，0-管理员，1-应届生，2-企业',
+    a_add       VARCHAR(16)  default ''                NOT NULL COMMENT '添加人ID',
     a_avatar    VARCHAR(256) default ''                NOT NULL COMMENT '头像',
     create_time datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
@@ -76,16 +77,16 @@ CREATE TABLE t_company_info
 DROP TABLE IF EXISTS t_fresh_com_send;
 CREATE TABLE t_fresh_com_send
 (
-    id          INT                                   NOT NULL AUTO_INCREMENT COMMENT 'id',
-    user_id     VARCHAR(16) default ''                NOT NULL COMMENT '应届生ID',
-    com_id      VARCHAR(16) default ''                NOT NULL COMMENT '企业ID',
-    job_id      VARCHAR(16) default ''                NOT NULL COMMENT '岗位ID',
-    resume_id   VARCHAR(16) default ''                NOT NULL COMMENT '简历ID',
-    send_time   DATETIME    default ''                NOT NULL COMMENT '投递时间',
-    send_state  INT         default 0                 NOT NULL COMMENT '投递状态 0-已投递 1-被查看 2-邀约面试 3-初筛不通过 4-流程结束',
-    create_time datetime    default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time datetime    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint     default 0                 not null comment '是否删除，0-否，1-是',
+    id          INT                                       NOT NULL AUTO_INCREMENT COMMENT 'id',
+    user_id     VARCHAR(16) default ''                    NOT NULL COMMENT '应届生ID',
+    com_id      VARCHAR(16) default ''                    NOT NULL COMMENT '企业ID',
+    job_id      VARCHAR(16) default ''                    NOT NULL COMMENT '岗位ID',
+    resume_id   VARCHAR(16) default ''                    NOT NULL COMMENT '简历ID',
+    send_time   DATETIME    default '0000-00-00 00:00:00' NOT NULL COMMENT '投递时间',
+    send_state  INT         default 0                     NOT NULL COMMENT '投递状态 0-已投递 1-被查看 2-邀约面试 3-初筛不通过 4-流程结束 5-应聘成功',
+    create_time datetime    default CURRENT_TIMESTAMP     not null comment '创建时间',
+    update_time datetime    default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint     default 0                     not null comment '是否删除，0-否，1-是',
     PRIMARY KEY (id),
     index index_user_id_com_id_job_id_resume_id (user_id, com_id, job_id, resume_id)
 ) COMMENT = '应届生投递记录表';
@@ -155,8 +156,9 @@ DROP TABLE IF EXISTS t_school_intro;
 CREATE TABLE t_school_intro
 (
     id            INT                                     NOT NULL AUTO_INCREMENT COMMENT 'id',
+    school_id     VARCHAR(16)   default ''                NOT NULL COMMENT '学校ID',
     title         VARCHAR(32)   default ''                NOT NULL COMMENT '标题',
-    intro_content VARCHAR(1024) default ''                NOT NULL COMMENT '资讯内容',
+    intro_content VARCHAR(4096) default ''                NOT NULL COMMENT '资讯内容',
     create_time   datetime      default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time   datetime      default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete     tinyint       default 0                 not null comment '是否删除，0-否，1-是',

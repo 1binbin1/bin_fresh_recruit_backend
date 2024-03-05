@@ -39,6 +39,6 @@ public class PublishMessageController {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        return ResultUtils.success(schoolIntroService.publishMessage(publishMessageRequest));
+        return ResultUtils.success(schoolIntroService.publishMessage(request, publishMessageRequest));
     }
 }

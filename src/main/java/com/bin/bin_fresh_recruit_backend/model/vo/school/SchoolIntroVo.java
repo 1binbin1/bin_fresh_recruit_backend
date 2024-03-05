@@ -1,8 +1,6 @@
 package com.bin.bin_fresh_recruit_backend.model.vo.school;
 
-import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -25,6 +23,9 @@ public class SchoolIntroVo implements Serializable {
     @JsonProperty(value = "id")
     private Integer id;
 
+    @JsonProperty(value = "school_id")
+    private String schoolId;
+
     /**
      * 标题
      */
@@ -42,5 +43,5 @@ public class SchoolIntroVo implements Serializable {
      */
     @JsonProperty(value = "create_time")
     private Date createTime;
-    
+
 }

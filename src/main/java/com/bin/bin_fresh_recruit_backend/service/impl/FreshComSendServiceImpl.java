@@ -10,16 +10,20 @@ import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.SCHOOL_LOGIN_STATE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
 /**
@@ -33,6 +37,9 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
 
     @Resource
     private FreshComSendMapper freshComSendMapper;
+
+    @Resource
+    private FreshComSendService freshComSendService;
 
     @Resource
     private AccountService accountService;
@@ -89,13 +96,12 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
             throw new BusinessException(ErrorCode.NO_RESUME_ERROR);
         }
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
-        freshComSendQueryWrapper.eq("user_id",userId);
-        freshComSendQueryWrapper.eq("com_id",comId);
-        freshComSendQueryWrapper.eq("job_id",jobId);
-        freshComSendQueryWrapper.eq("resume_id",resumeId);
+        freshComSendQueryWrapper.eq("user_id", userId);
+        freshComSendQueryWrapper.eq("com_id", comId);
+        freshComSendQueryWrapper.eq("job_id", jobId);
         freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
-        FreshComSend comSend = this.getOne(freshComSendQueryWrapper);
-        if (comSend != null) {
+        List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
+        if (freshComSends != null && freshComSends.size() > 0) {
             throw new BusinessException(ErrorCode.SEND_RESUME_ERROR);
         }
         FreshComSend freshComSend = new FreshComSend();
@@ -104,7 +110,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         freshComSend.setJobId(jobId);
         freshComSend.setResumeId(resumeId);
         freshComSend.setSendTime(new Date());
-        freshComSend.setSendState(SendStatus.SendStatusSuccess);
+        freshComSend.setSendState(SendStatus.SEND_STATUS_HAVE);
         boolean save = this.save(freshComSend);
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
@@ -113,6 +119,76 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         FreshComSendVo freshComSendVo = new FreshComSendVo();
         BeanUtils.copyProperties(freshComSend, freshComSendVo);
         return freshComSendVo;
+    }
+
+    /**
+     * 获取就业数据
+     *
+     * @param request 登录态（学校就业中心）
+     * @return 响应数据
+     */
+    @Override
+    public SchoolRateVo getRate(HttpServletRequest request) {
+        SchoolRateVo result = new SchoolRateVo();
+        Account schoolAccount = accountService.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        //总学生人数
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_add", schoolId);
+        accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        List<Account> accountList = accountService.list(accountQueryWrapper);
+        long totalNum = accountList.size();
+        result.setFreshTotalNum(totalNum);
+        // ids
+        List<String> freshIds = new ArrayList<>();
+        for (Account account : accountList) {
+            freshIds.add(account.getAId());
+        }
+        // 查询投递信息
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.in("user_id", freshIds);
+        List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
+        // 计算数据
+        long haveNum = 0;
+        long lookedNum = 0;
+        long invitedNum = 0;
+        long noPassNum = 0;
+        long sendFinishNum = 0;
+        long successNum = 0;
+        for (FreshComSend freshComSend : freshComSends) {
+            switch (freshComSend.getSendState()) {
+                case 0:
+                    haveNum++;
+                    break;
+                case 1:
+                    lookedNum++;
+                    break;
+                case 2:
+                    invitedNum++;
+                    break;
+                case 3:
+                    noPassNum++;
+                    break;
+                case 4:
+                    sendFinishNum++;
+                    break;
+                case 5:
+                    successNum++;
+                    break;
+                default:
+            }
+        }
+        result.setFreshSendHaveNum(haveNum);
+        result.setFreshSendLookedNum(lookedNum);
+        result.setFreshSendInvitedNum(invitedNum);
+        result.setFreshSendNoPassNum(noPassNum);
+        result.setFreshSendFinishNum(sendFinishNum);
+        result.setFreshSendSuccessNum(successNum);
+        result.setEmploymentRate((float)(successNum/totalNum));
+        return result;
     }
 }
 

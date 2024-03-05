@@ -16,7 +16,7 @@ public class AccountLoginRequest implements Serializable {
     private static final long serialVersionUID = 2774531409721924647L;
 
     /**
-     * 手机号
+     * 手机号或账号
      */
     @JsonProperty("phone")
     private String phone;

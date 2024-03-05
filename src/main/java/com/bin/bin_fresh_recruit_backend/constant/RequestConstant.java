@@ -15,7 +15,7 @@ public interface RequestConstant {
     /**
      * 文本长度
      */
-    Integer TEXT_MAX_LENGTH = 500;
+    Integer TEXT_MAX_LENGTH = 2000;
 
     /**
      * 忘记密码
@@ -31,4 +31,12 @@ public interface RequestConstant {
      * 注册
      */
     Integer REGISTER = 2;
+
+    /**
+     * 默认页码
+     */
+    Integer DEFAULT_CURRENT = 1;
+
+    // 默认页大小
+    Integer DEFAULT_PAGE_SIZE = 20;
 }

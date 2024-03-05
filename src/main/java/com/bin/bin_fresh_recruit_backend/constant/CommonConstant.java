@@ -114,4 +114,19 @@ public interface CommonConstant {
      * 已删除
      */
     Integer YES_DELETE = 1;
+
+    /**
+     * 默认密码
+     */
+    String DEFAULT_PASSWORD = "123456";
+
+    /**
+     * 开头字符
+     */
+    String START_CHAR = "C";
+
+    /**
+     * 批量添加应届生最多数量
+     */
+    Integer MAX_ADD_FRESH_NUM = 200;
 }

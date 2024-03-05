@@ -1,8 +1,10 @@
 package com.bin.bin_fresh_recruit_backend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
@@ -14,11 +16,19 @@ import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.CompanyInfo;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshAddListRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshManageRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.school.FreshManageVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
+import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
+import com.bin.bin_fresh_recruit_backend.utils.ArrayUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +40,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -62,6 +74,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     @Resource
     private PushMsgConfig pushMsgConfig;
+
+    @Resource
+    private FreshUserInfoService freshUserInfoService;
 
     /**
      * 账号注册
@@ -101,18 +116,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         account.setARole(role);
         account.setAPhone(phone);
         account.setAPassword(digestPassword);
+        account.setAAdd(id);
         saveResult = this.save(account);
         // 保存信息
         switch (role) {
             case SCHOOL_ROLE:
                 return new AccountInfoVo(id, phone, "");
-            case FRESH_ROLE:
-                // 应届生
-                FreshUserInfo freshUserInfo = new FreshUserInfo();
-                freshUserInfo.setUserId(id);
-                freshUserInfo.setUserPhone(phone);
-                insertResult = freshUserInfoMapper.insert(freshUserInfo);
-                break;
             case COMPANY_ROLE:
                 // 企业
                 CompanyInfo companyInfo = new CompanyInfo();
@@ -141,13 +150,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Override
     public AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request) {
         // 参数校验
-        String pattern = "^1[3456789]\\d{9}$";
-        if (!Pattern.matches(pattern, phone)) {
-            throw new BusinessException(ErrorCode.PHONE_ERROR);
-        }
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
-        accountQueryWrapper.eq("a_phone", phone);
+        accountQueryWrapper.and(j -> j.eq("a_id", phone).or().eq("a_phone", phone));
         accountQueryWrapper.eq("a_password", digestPassword);
         accountQueryWrapper.eq("a_role", role);
         Account account = accountMapper.selectOne(accountQueryWrapper);
@@ -338,6 +343,215 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
         return pushMsg;
     }
+
+    /**
+     * 添加应届生（单个）
+     *
+     * @param request            登录态
+     * @param freshManageRequest 请求参数
+     * @return
+     */
+    @Override
+    @Transactional
+    public FreshManageVo addFreshBySchool(HttpServletRequest request, FreshManageRequest freshManageRequest) {
+        Account schoolAccount = this.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        if (StringUtils.isAnyBlank(schoolId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String freshId = freshManageRequest.getFreshId();
+        if (StringUtils.isAnyBlank(freshId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 默认密码 123456
+        String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + DEFAULT_PASSWORD).getBytes(StandardCharsets.UTF_8));
+        freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
+        // 保存
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", freshId);
+        accountQueryWrapper.eq("a_add", schoolId);
+        Account one = this.getOne(accountQueryWrapper);
+        if (one != null) {
+            throw new BusinessException(ErrorCode.ACCOUNT_ERROR);
+        }
+        // 保存
+        Account account = new Account();
+        account.setAId(freshId);
+        account.setAPassword(digestPassword);
+        account.setARole(FRESH_ROLE);
+        account.setAAdd(schoolId);
+        boolean save = this.save(account);
+        // 添加到应届生信息
+        FreshUserInfo freshUserInfo = new FreshUserInfo();
+        freshUserInfo.setUserId(freshId);
+        int insertResult = freshUserInfoMapper.insert(freshUserInfo);
+        if (!save || insertResult == 0) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        FreshManageVo manageVo = new FreshManageVo();
+        manageVo.setFreshId(freshId);
+        manageVo.setSchoolId(schoolId);
+        return manageVo;
+    }
+
+    /**
+     * 批量添加应届生
+     *
+     * @param request             登录态
+     * @param freshAddListRequest 请求参数
+     * @return 响应数据
+     */
+    @Override
+    @Transactional
+    public List<FreshManageVo> addFreshBySchoolList(HttpServletRequest request, FreshAddListRequest freshAddListRequest) {
+        Account schoolAccount = this.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        if (StringUtils.isAnyBlank(schoolId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String[] freshIds = freshAddListRequest.getFreshIds();
+        if (freshIds.length > MAX_ADD_FRESH_NUM) {
+            throw new BusinessException(ErrorCode.OVER_MAX_ERROR);
+        }
+        // 去重id
+        String[] duplicationFreshIds = ArrayUtils.removeDuplication(freshIds);
+        String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + DEFAULT_PASSWORD).getBytes(StandardCharsets.UTF_8));
+        List<Account> accountList = new ArrayList<>();
+        List<FreshUserInfo> freshUserList = new ArrayList<>();
+        List<FreshManageVo> freshManageVos = new ArrayList<>();
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        for (String freshId : duplicationFreshIds) {
+            freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
+            accountQueryWrapper.eq("a_id", freshId);
+            accountQueryWrapper.eq("a_add", schoolId);
+            Account one = this.getOne(accountQueryWrapper);
+            if (one != null) {
+                continue;
+            }
+            // 保存
+            Account account = new Account();
+            account.setAId(freshId);
+            account.setAPassword(digestPassword);
+            account.setARole(FRESH_ROLE);
+            account.setAAdd(schoolId);
+            accountList.add(account);
+
+            FreshUserInfo freshUserInfo = new FreshUserInfo();
+            freshUserInfo.setUserId(freshId);
+            freshUserList.add(freshUserInfo);
+
+            FreshManageVo freshManageVo = new FreshManageVo();
+            freshManageVo.setFreshId(freshId);
+            freshManageVo.setSchoolId(schoolId);
+            freshManageVos.add(freshManageVo);
+        }
+        // 批量添加
+        boolean saveBatch = this.saveBatch(accountList);
+        if (accountList.size() != 0 && !saveBatch) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        boolean batch = freshUserInfoService.saveBatch(freshUserList);
+        if (freshUserList.size() != 0 && !batch) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        return freshManageVos;
+    }
+
+    /**
+     * 删除应届生(单个)
+     *
+     * @param request            登录态
+     * @param freshManageRequest 请求参数
+     * @return 响应数据
+     */
+    @Override
+    @Transactional
+    public FreshManageVo deleteFreshBySchool(HttpServletRequest request, FreshManageRequest freshManageRequest) {
+        Account schoolAccount = this.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        if (StringUtils.isAnyBlank(schoolId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String freshId = freshManageRequest.getFreshId();
+        if (StringUtils.isAnyBlank(freshId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", freshId);
+        accountQueryWrapper.eq("a_add", schoolId);
+        Account account = this.getOne(accountQueryWrapper);
+        if (account == null) {
+            throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+        }
+        // 删除
+        boolean remove = this.remove(accountQueryWrapper);
+        QueryWrapper<FreshUserInfo> freshUserInfoQueryWrapper = new QueryWrapper<>();
+        freshUserInfoQueryWrapper.eq("user_id", freshId);
+        boolean removeFresh = freshUserInfoService.remove(freshUserInfoQueryWrapper);
+        if (!remove || !removeFresh) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        FreshManageVo manageVo = new FreshManageVo();
+        manageVo.setFreshId(freshId);
+        manageVo.setSchoolId(schoolId);
+        return manageVo;
+    }
+
+    /**
+     * 获取应届生列表
+     *
+     * @param request  登录态
+     * @param current  页码
+     * @param pageSize 页大小
+     * @return 响应数据
+     */
+    @Override
+    public PageVo<FreshInfoVo> getFreshList(HttpServletRequest request, long current, long pageSize) {
+        Account schoolAccount = this.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        if (StringUtils.isAnyBlank(schoolId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        // 查询Id
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_add", schoolId);
+        accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        Page<Account> accountPage = this.page(new Page<>(current, pageSize), accountQueryWrapper);
+        // 查询信息
+        ArrayList<String> freshIds = new ArrayList<>();
+        for (Account record : accountPage.getRecords()) {
+            freshIds.add(record.getAId());
+        }
+        QueryWrapper<FreshUserInfo> freshUserInfoQueryWrapper = new QueryWrapper<>();
+        freshUserInfoQueryWrapper.in("user_id", freshIds);
+        List<FreshUserInfo> freshUserInfos = freshUserInfoMapper.selectList(freshUserInfoQueryWrapper);
+        List<FreshInfoVo> freshInfoVos = new ArrayList<>();
+        for (FreshUserInfo freshUserInfo : freshUserInfos) {
+            FreshInfoVo freshInfoVo = new FreshInfoVo();
+            BeanUtils.copyProperties(freshUserInfo, freshInfoVo);
+            freshInfoVos.add(freshInfoVo);
+        }
+        // 封装
+        PageVo<FreshInfoVo> pageVo = new PageVo<>();
+        pageVo.setList(freshInfoVos);
+        pageVo.setCurrent(accountPage.getCurrent());
+        pageVo.setPageSize(accountPage.getSize());
+        pageVo.setTotal(accountPage.getTotal());
+        return pageVo;
+    }
+
 }
 
 

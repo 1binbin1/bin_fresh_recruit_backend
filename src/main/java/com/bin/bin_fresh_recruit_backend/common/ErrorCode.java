@@ -34,6 +34,8 @@ public enum ErrorCode {
     NO_JOB_ERROR(4017, "岗位不存在"),
     NO_RESUME_ERROR(4018, "简历不存在"),
     SEND_RESUME_ERROR(4019, "投递记录已存在"),
+    NO_START_ERROR(4020, "应届生ID非以C字符开头"),
+    OVER_MAX_ERROR(4021, "应届生数量超过200个"),
     ;
 
     /**

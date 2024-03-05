@@ -37,6 +37,12 @@ public class Account implements Serializable {
     private String aPhone;
 
     /**
+     * 添加人ID
+     */
+    @TableField(value = "a_add")
+    private String aAdd;
+
+    /**
      * 密码
      */
     @TableField(value = "a_password")

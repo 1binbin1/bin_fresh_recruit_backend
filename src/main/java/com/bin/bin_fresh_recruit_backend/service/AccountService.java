@@ -1,12 +1,18 @@
 package com.bin.bin_fresh_recruit_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshAddListRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshManageRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.school.FreshManageVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author hongxiaobin
@@ -80,4 +86,41 @@ public interface AccountService extends IService<Account> {
      * @return 响应数据
      */
     Boolean pushMsgCode(AccountGetCodeRequest accountGetCodeRequest);
+
+    /**
+     * 添加应届生（单个）
+     *
+     * @param request            登录态
+     * @param freshManageRequest 请求参数
+     * @return 相应数据
+     */
+    FreshManageVo addFreshBySchool(HttpServletRequest request, FreshManageRequest freshManageRequest);
+
+    /**
+     * 删除应届生(单个)
+     *
+     * @param request            登录态
+     * @param freshManageRequest 请求参数
+     * @return 响应数据
+     */
+    FreshManageVo deleteFreshBySchool(HttpServletRequest request, FreshManageRequest freshManageRequest);
+
+    /**
+     * 获取应届生列表
+     *
+     * @param request  登录态
+     * @param current  页码
+     * @param pageSize 页大小
+     * @return 响应数据
+     */
+    PageVo<FreshInfoVo> getFreshList(HttpServletRequest request, long current, long pageSize);
+
+    /**
+     * 批量添加应届生
+     *
+     * @param request             登录态
+     * @param freshAddListRequest 请求参数
+     * @return 响应数据
+     */
+    List<FreshManageVo> addFreshBySchoolList(HttpServletRequest request, FreshAddListRequest freshAddListRequest);
 }
