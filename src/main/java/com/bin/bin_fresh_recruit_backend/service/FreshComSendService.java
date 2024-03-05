@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshComSend;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,9 +18,17 @@ public interface FreshComSendService extends IService<FreshComSend> {
     /**
      * 投递简历
      *
-     * @param request 登录态
+     * @param request           登录态
      * @param resumeSendRequest 简历投递请求
      * @return 请求响应
      */
     FreshComSendVo sendResume(HttpServletRequest request, ResumeSendRequest resumeSendRequest);
+
+    /**
+     * 查询就业数据
+     *
+     * @param request 登录态（学校就业中心）
+     * @return 响应数据
+     */
+    SchoolRateVo getRate(HttpServletRequest request);
 }

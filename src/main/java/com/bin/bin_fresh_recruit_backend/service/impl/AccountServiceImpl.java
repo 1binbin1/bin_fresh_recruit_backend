@@ -150,10 +150,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Override
     public AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request) {
         // 参数校验
-        String pattern = "^1[3456789]\\d{9}$";
-        if (!Pattern.matches(pattern, phone)) {
-            throw new BusinessException(ErrorCode.PHONE_ERROR);
-        }
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.and(j -> j.eq("a_id", phone).or().eq("a_phone", phone));
@@ -370,12 +366,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (StringUtils.isAnyBlank(freshId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // 校验是否C开头
-        if (!freshId.startsWith(START_CHAR)) {
-            throw new BusinessException(ErrorCode.NO_START_ERROR);
-        }
         // 默认密码 123456
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + DEFAULT_PASSWORD).getBytes(StandardCharsets.UTF_8));
+        freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
         // 保存
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_id", freshId);
@@ -395,7 +388,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         FreshUserInfo freshUserInfo = new FreshUserInfo();
         freshUserInfo.setUserId(freshId);
         int insertResult = freshUserInfoMapper.insert(freshUserInfo);
-        if (!save || insertResult != 0) {
+        if (!save || insertResult == 0) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         FreshManageVo manageVo = new FreshManageVo();
@@ -434,6 +427,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         List<FreshManageVo> freshManageVos = new ArrayList<>();
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         for (String freshId : duplicationFreshIds) {
+            freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
             accountQueryWrapper.eq("a_id", freshId);
             accountQueryWrapper.eq("a_add", schoolId);
             Account one = this.getOne(accountQueryWrapper);
@@ -459,11 +453,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         // 批量添加
         boolean saveBatch = this.saveBatch(accountList);
-        if (!saveBatch) {
+        if (accountList.size() != 0 && !saveBatch) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         boolean batch = freshUserInfoService.saveBatch(freshUserList);
-        if (!batch) {
+        if (freshUserList.size() != 0 && !batch) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         return freshManageVos;
@@ -477,6 +471,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @return 响应数据
      */
     @Override
+    @Transactional
     public FreshManageVo deleteFreshBySchool(HttpServletRequest request, FreshManageRequest freshManageRequest) {
         Account schoolAccount = this.getLoginInfo(request, SCHOOL_LOGIN_STATE);
         if (schoolAccount == null) {
@@ -499,7 +494,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         // 删除
         boolean remove = this.remove(accountQueryWrapper);
-        if (!remove) {
+        QueryWrapper<FreshUserInfo> freshUserInfoQueryWrapper = new QueryWrapper<>();
+        freshUserInfoQueryWrapper.eq("user_id", freshId);
+        boolean removeFresh = freshUserInfoService.remove(freshUserInfoQueryWrapper);
+        if (!remove || !removeFresh) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         FreshManageVo manageVo = new FreshManageVo();
@@ -529,6 +527,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 查询Id
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
+        accountQueryWrapper.eq("a_role", FRESH_ROLE);
         Page<Account> accountPage = this.page(new Page<>(current, pageSize), accountQueryWrapper);
         // 查询信息
         ArrayList<String> freshIds = new ArrayList<>();

@@ -10,26 +10,30 @@ public interface SendStatus {
     /**
      * 已投递
      */
-    Integer SendStatusSuccess = 0;
+    Integer SEND_STATUS_HAVE = 0;
 
     /**
      * 被查看
      */
-    Integer SendStatusLooked = 1;
+    Integer SEND_STATUS_LOOKED = 1;
 
     /**
      * 邀约面试
      */
-    Integer SendStatusInvited = 2;
+    Integer SEND_STATUS_INVITED = 2;
 
     /**
      * 初筛不通过
      */
-    Integer SendStatusNoPass = 3;
+    Integer SEND_STATUS_NO_PASS = 3;
 
     /**
      * 流程结束
      */
-    Integer SendStatusFinish = 4;
+    Integer SEND_STATUS_FINISH = 4;
 
+    /**
+     * 应聘成功
+     */
+    Integer SEND_STATUS_SUCCESS = 5;
 }

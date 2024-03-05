@@ -57,7 +57,7 @@ public class FreshManageController {
     /**
      * 批量单个应届生（最多200个）
      *
-     * @param freshManageRequest 请求参数
+     * @param freshAddListRequest 请求参数
      * @param request            登录态
      * @return 响应数据
      */

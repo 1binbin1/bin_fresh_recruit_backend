@@ -188,11 +188,12 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         if (StringUtils.isAnyBlank(jobId, userId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        if (!Objects.equals(sendState, SendStatus.SendStatusSuccess) &&
-                !Objects.equals(sendState, SendStatus.SendStatusLooked) &&
-                !Objects.equals(sendState, SendStatus.SendStatusInvited) &&
-                !Objects.equals(sendState, SendStatus.SendStatusNoPass) &&
-                !Objects.equals(sendState, SendStatus.SendStatusFinish)) {
+        if (!Objects.equals(sendState, SendStatus.SEND_STATUS_HAVE) &&
+                !Objects.equals(sendState, SendStatus.SEND_STATUS_LOOKED) &&
+                !Objects.equals(sendState, SendStatus.SEND_STATUS_INVITED) &&
+                !Objects.equals(sendState, SendStatus.SEND_STATUS_NO_PASS) &&
+                !Objects.equals(sendState, SendStatus.SEND_STATUS_FINISH) &&
+                !Objects.equals(sendState, SendStatus.SEND_STATUS_SUCCESS)) {
             throw new BusinessException(ErrorCode.SEND_STATE_ERROR);
         }
         // 修改
