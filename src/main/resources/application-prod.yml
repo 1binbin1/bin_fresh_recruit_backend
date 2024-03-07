@@ -4,7 +4,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://bin-study.mysql.database.azure.com:3306/db_bin_fresh_job?serverTimezone=Asia/Shanghai
     username: super
-    password: Abinbin
+    password: Abinbin123
   #    Session timeout (in minutes)
   session:
     timeout: 604800
