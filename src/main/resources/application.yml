@@ -58,7 +58,7 @@ qiniu:
   # Storage space name
   bucketName: bin-fresh-recruit-backend
   # Domain name/path
-  path: http://s6u2k64z5.hn-bkt.clouddn.com
+  path: http://s9zeur713.hn-bkt.clouddn.com
   # The file names stored in the space do not need to be deleted（With diagonal rods["/"]）
   documentName: bin_fresh_recruit_backend/
 
