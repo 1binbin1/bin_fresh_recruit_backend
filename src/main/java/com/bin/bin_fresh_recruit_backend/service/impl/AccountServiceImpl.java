@@ -425,8 +425,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         List<Account> accountList = new ArrayList<>();
         List<FreshUserInfo> freshUserList = new ArrayList<>();
         List<FreshManageVo> freshManageVos = new ArrayList<>();
-        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         for (String freshId : duplicationFreshIds) {
+            QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
             freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
             accountQueryWrapper.eq("a_id", freshId);
             accountQueryWrapper.eq("a_add", schoolId);
