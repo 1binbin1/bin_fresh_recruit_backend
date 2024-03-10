@@ -7,6 +7,7 @@ import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshSendStateVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import com.bin.bin_fresh_recruit_backend.service.FreshResumeService;
@@ -30,6 +31,7 @@ import java.util.List;
 public class FreshResumeController {
     @Resource
     private FreshResumeService freshResumeService;
+
     @Resource
     private FreshComSendService freshComSendService;
 
@@ -131,7 +133,7 @@ public class FreshResumeController {
     /**
      * 投递简历
      *
-     * @param request 登录态
+     * @param request           登录态
      * @param resumeSendRequest 简历投递请求
      * @return 响应数据
      */
@@ -145,5 +147,20 @@ public class FreshResumeController {
         }
         FreshComSendVo freshComSendVo = freshComSendService.sendResume(request, resumeSendRequest);
         return ResultUtils.success(freshComSendVo);
+    }
+
+    /**
+     * 获取投递进度列表
+     *
+     * @param request 请求参数
+     * @return 响应参数
+     */
+    @GetMapping("/send/state")
+    public BaseResponse<List<FreshSendStateVo>> getFreshSensState(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<FreshSendStateVo> result = freshComSendService.getSendState(request);
+        return ResultUtils.success(result);
     }
 }

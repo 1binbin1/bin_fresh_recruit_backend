@@ -7,16 +7,14 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
-import com.bin.bin_fresh_recruit_backend.mapper.FreshComSendMapper;
-import com.bin.bin_fresh_recruit_backend.mapper.FreshResumeMapper;
-import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
-import com.bin.bin_fresh_recruit_backend.mapper.JobInfoMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.*;
 import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.company.JobComSendSearchRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshSendStateVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +63,12 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
 
     @Resource
     private FreshResumeMapper freshResumeMapper;
+
+    @Resource
+    private AccountMapper accountMapper;
+
+    @Resource
+    private CompanyInfoMapper companyInfoMapper;
 
 
     /**
@@ -239,9 +243,9 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
             freshComSendQueryWrapper.eq("t_fresh_com_send.send_state", sendStatus);
         }
         if (jobName != null) {
-            if (jobIds.size()!=0) {
+            if (jobIds.size() != 0) {
                 freshComSendQueryWrapper.in("t_fresh_com_send.job_id", jobIds);
-            }else {
+            } else {
                 freshComSendQueryWrapper.eq("t_fresh_com_send.job_id", "");
             }
         }
@@ -285,6 +289,53 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         result.setTotal(freshComSendPage.getTotal());
         result.setCurrent(freshComSendPage.getCurrent());
         result.setPageSize(freshComSendPage.getSize());
+        return result;
+    }
+
+    /**
+     * 获取投递进度列表
+     *
+     * @param request 请求参数
+     * @return 响应参数
+     */
+    @Override
+    public List<FreshSendStateVo> getSendState(HttpServletRequest request) {
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String userId = loginInfo.getAId();
+        // 查询
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.eq("user_id", userId);
+        List<FreshComSend> comSends = this.list(freshComSendQueryWrapper);
+        // 提取ids
+        List<String> jobId = new ArrayList<>();
+        List<String> comIds = new ArrayList<>();
+        for (FreshComSend comSend : comSends) {
+            comIds.add(comSend.getComId());
+            jobId.add(comSend.getJobId());
+        }
+        Map<String, Account> accountHashMap = new HashMap<>();
+        Map<String, CompanyInfo> companyInfoHashMap = new HashMap<>();
+        Map<String, JobInfo> jobInfo = new HashMap<>();
+        if (comIds.size() != 0) {
+            accountHashMap = accountMapper.getAccount(comIds);
+            companyInfoHashMap = companyInfoMapper.getCompanyInfo(comIds);
+        }
+        if (jobId.size() != 0) {
+            jobInfo = jobInfoMapper.getJobInfo(jobId);
+        }
+        // 组装结果
+        List<FreshSendStateVo> result = new ArrayList<>();
+        for (FreshComSend comSend : comSends) {
+            FreshSendStateVo freshSendStateVo = new FreshSendStateVo();
+            BeanUtils.copyProperties(comSend, freshSendStateVo);
+            freshSendStateVo.setComName(companyInfoHashMap.get(comSend.getComId()).getComName());
+            freshSendStateVo.setAAvatar(accountHashMap.get(comSend.getComId()).getAAvatar());
+            freshSendStateVo.setJobName(jobInfo.get(comSend.getJobId()).getJobName());
+            result.add(freshSendStateVo);
+        }
         return result;
     }
 }
