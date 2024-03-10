@@ -1,14 +1,21 @@
 package com.bin.bin_fresh_recruit_backend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.FreshComSendMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.FreshResumeMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.JobInfoMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
+import com.bin.bin_fresh_recruit_backend.model.request.company.JobComSendSearchRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.*;
@@ -18,13 +25,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
-import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.SCHOOL_LOGIN_STATE;
-import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
 
 /**
  * @author hongxiaobin
@@ -52,6 +56,15 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
 
     @Resource
     private FreshResumeService freshResumeService;
+
+    @Resource
+    private JobInfoMapper jobInfoMapper;
+
+    @Resource
+    private FreshUserInfoMapper freshUserInfoMapper;
+
+    @Resource
+    private FreshResumeMapper freshResumeMapper;
 
 
     /**
@@ -187,7 +200,91 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         result.setFreshSendNoPassNum(noPassNum);
         result.setFreshSendFinishNum(sendFinishNum);
         result.setFreshSendSuccessNum(successNum);
-        result.setEmploymentRate((float)(successNum/totalNum));
+        result.setEmploymentRate((float) (successNum / totalNum));
+        return result;
+    }
+
+    /**
+     * 企业获取投递列表
+     *
+     * @param request                 登录态
+     * @param jobComSendSearchRequest 请求参数
+     * @return 响应数据
+     */
+    @Override
+    public PageVo<JobSendVo> getFreshSend(HttpServletRequest request, JobComSendSearchRequest jobComSendSearchRequest) {
+        Account loginInfo = accountService.getLoginInfo(request, COM_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String comId = loginInfo.getAId();
+        // 处理请求参数
+        Integer sendStatus = jobComSendSearchRequest.getSendStatus();
+        String jobName = jobComSendSearchRequest.getJobName();
+        long current = jobComSendSearchRequest.getCurrent();
+        long pageSize = jobComSendSearchRequest.getPageSize();
+        ArrayList<String> jobIds = new ArrayList<>();
+        if (jobName != null && !Objects.equals(jobName, "")) {
+            QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
+            jobInfoQueryWrapper.like("job_name", jobName);
+            List<JobInfo> jobInfos = jobInfoService.list(jobInfoQueryWrapper);
+            for (JobInfo jobInfo : jobInfos) {
+                jobIds.add(jobInfo.getJobId());
+            }
+        }
+        // 分页查询列表
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.eq("t_fresh_com_send.com_id", comId);
+        if (sendStatus != -1) {
+            freshComSendQueryWrapper.eq("t_fresh_com_send.send_state", sendStatus);
+        }
+        if (jobName != null) {
+            if (jobIds.size()!=0) {
+                freshComSendQueryWrapper.in("t_fresh_com_send.job_id", jobIds);
+            }else {
+                freshComSendQueryWrapper.eq("t_fresh_com_send.job_id", "");
+            }
+        }
+
+        Page<FreshComSend> freshComSendPage = this.page(new Page<>(current, pageSize), freshComSendQueryWrapper);
+        // 获取各种id
+        List<String> jobId = new ArrayList<>();
+        List<String> resumeId = new ArrayList<>();
+        List<String> userId = new ArrayList<>();
+        for (FreshComSend record : freshComSendPage.getRecords()) {
+            jobId.add(record.getJobId());
+            resumeId.add(record.getResumeId());
+            userId.add(record.getUserId());
+        }
+        // 查询附属信息
+        Map<String, JobInfo> jobInfo = new HashMap<>();
+        Map<String, FreshResume> freshResume = new HashMap<>();
+        Map<String, FreshUserInfo> freshUserInfo = new HashMap<>();
+        if (jobId.size() != 0) {
+            jobInfo = jobInfoMapper.getJobInfo(jobId);
+        }
+        if (resumeId.size() != 0) {
+            freshResume = freshResumeMapper.getResumeInfo(resumeId);
+        }
+        if (userId.size() != 0) {
+            freshUserInfo = freshUserInfoMapper.getFreshUserInfo(userId);
+        }
+        // 处理响应
+        PageVo<JobSendVo> result = new PageVo<>();
+        List<JobSendVo> jobSendVos = new ArrayList<>();
+        for (FreshComSend record : freshComSendPage.getRecords()) {
+            JobSendVo jobSendVo = new JobSendVo();
+            BeanUtils.copyProperties(record, jobSendVo);
+            jobSendVo.setJobName(jobInfo.get(record.getJobId()).getJobName());
+            jobSendVo.setUserName(freshUserInfo.get(record.getUserId()).getUserName());
+            jobSendVo.setUserNameLink(freshResume.get(record.getResumeId()).getUserNameLink());
+            jobSendVo.setResumeName(freshResume.get(record.getResumeId()).getResumeName());
+            jobSendVos.add(jobSendVo);
+        }
+        result.setList(jobSendVos);
+        result.setTotal(freshComSendPage.getTotal());
+        result.setCurrent(freshComSendPage.getCurrent());
+        result.setPageSize(freshComSendPage.getSize());
         return result;
     }
 }

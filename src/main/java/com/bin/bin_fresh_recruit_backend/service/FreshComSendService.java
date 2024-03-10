@@ -1,8 +1,11 @@
 package com.bin.bin_fresh_recruit_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshComSend;
+import com.bin.bin_fresh_recruit_backend.model.request.company.JobComSendSearchRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 
@@ -31,4 +34,13 @@ public interface FreshComSendService extends IService<FreshComSend> {
      * @return 响应数据
      */
     SchoolRateVo getRate(HttpServletRequest request);
+
+    /**
+     * 企业获取投递进度
+     *
+     * @param request                 登录态
+     * @param jobComSendSearchRequest 请求参数
+     * @return 响应数据（分页）
+     */
+    PageVo<JobSendVo> getFreshSend(HttpServletRequest request, JobComSendSearchRequest jobComSendSearchRequest);
 }

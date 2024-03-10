@@ -1,5 +1,6 @@
 package com.bin.bin_fresh_recruit_backend.controller.companyController;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
@@ -7,7 +8,9 @@ import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
+import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 public class JobController {
     @Resource
     private JobInfoService jobInfoService;
+
+    @Resource
+    private FreshComSendService freshComSendService;
 
     /**
      * 新增岗位信息
@@ -145,6 +151,25 @@ public class JobController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         PageVo<JobInfoVo> pageVoCom = jobInfoService.getJobListByCom(jobComSearchRequest);
+        return ResultUtils.success(pageVoCom);
+    }
+
+    /**
+     * 企业获取投递列表
+     *
+     * @param request                 登录态
+     * @param jobComSendSearchRequest 请求参数
+     * @return 响应参数（分页）
+     */
+    @PostMapping("/send")
+    public BaseResponse<PageVo<JobSendVo>> getFreshSendResumeByCom(HttpServletRequest request, @RequestBody JobComSendSearchRequest jobComSendSearchRequest) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (jobComSendSearchRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        PageVo<JobSendVo> pageVoCom = freshComSendService.getFreshSend(request, jobComSendSearchRequest);
         return ResultUtils.success(pageVoCom);
     }
 }
