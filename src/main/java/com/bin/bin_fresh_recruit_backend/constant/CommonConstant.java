@@ -129,4 +129,9 @@ public interface CommonConstant {
      * 批量添加应届生最多数量
      */
     Integer MAX_ADD_FRESH_NUM = 200;
+
+    /**
+     * 最近聊天对象最大个数
+     */
+    Integer MAX_LATELY_FRESH = 20;
 }

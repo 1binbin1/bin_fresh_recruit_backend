@@ -5,10 +5,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
 import com.bin.bin_fresh_recruit_backend.mapper.ChatMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.Chat;
+import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.chat.LatelyFreshVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.ChatService;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +23,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.CHAT_USER_COM;
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.CHAT_USER_FRESH;
@@ -39,6 +45,12 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
 
     @Resource
     private ChatMapper chatMapper;
+
+    @Resource
+    private AccountMapper accountMapper;
+
+    @Resource
+    private FreshUserInfoMapper freshUserInfoMapper;
 
     /**
      * @param request  登录态
@@ -116,6 +128,55 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             chatVoArrayList.add(chatVo);
         }
         return chatVoArrayList;
+    }
+
+
+    /**
+     * 企业获取聊天对象
+     *
+     * @param request 登录态
+     * @return 响应对象
+     */
+    @Override
+    public List<LatelyFreshVo> getLatelyFreshList(HttpServletRequest request) {
+        Account loginInfo = accountService.getLoginInfo(request, COM_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String comId = loginInfo.getAId();
+        // 查询最近聊天对象
+        QueryWrapper<Chat> chatQueryWrapper = new QueryWrapper<>();
+        chatQueryWrapper.eq("com_id", comId);
+        chatQueryWrapper.orderByDesc("create_time");
+        String sql = " limit " + CommonConstant.MAX_LATELY_FRESH;
+        chatQueryWrapper.last(sql);
+        List<Chat> list = this.list(chatQueryWrapper);
+        // 查询用户信息
+        ArrayList<String> freshUserIds = new ArrayList<>();
+        ArrayList<String> accountIds = new ArrayList<>();
+        for (Chat chat : list) {
+            freshUserIds.add(chat.getUserId());
+            accountIds.add(chat.getUserId());
+        }
+        // 查询
+        Map<String, FreshUserInfo> userInfo = new HashMap<>();
+        Map<String, Account> accountInfo = new HashMap<>();
+        if (freshUserIds.size() != 0) {
+            userInfo = freshUserInfoMapper.getFreshUserInfo(freshUserIds);
+        }
+        if (accountIds.size() != 0) {
+            accountInfo = accountMapper.getAccount(accountIds);
+        }
+        // 构造
+        ArrayList<LatelyFreshVo> latelyFreshVos = new ArrayList<>();
+        for (Chat chat : list) {
+            LatelyFreshVo latelyFreshVo = new LatelyFreshVo();
+            BeanUtils.copyProperties(chat,latelyFreshVo);
+            latelyFreshVo.setAAvatar(accountInfo.get(chat.getUserId()).getAAvatar());
+            latelyFreshVo.setUserName(userInfo.get(chat.getUserId()).getUserName());
+            latelyFreshVos.add(latelyFreshVo);
+        }
+        return latelyFreshVos;
     }
 
     private Account getAccountByUserType(HttpServletRequest request, Integer userType) {

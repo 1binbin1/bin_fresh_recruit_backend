@@ -8,6 +8,7 @@ import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByComRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByFreshRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.chat.LatelyFreshVo;
 import com.bin.bin_fresh_recruit_backend.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -104,5 +105,20 @@ public class ChatController {
         }
         List<ChatVo> chatVos = chatService.getChatList(userId, request, CommonConstant.CHAT_USER_COM);
         return ResultUtils.success(chatVos);
+    }
+
+    /**
+     * 企业获取最近聊天对象
+     *
+     * @param request 登录态
+     * @return 响应数据
+     */
+    @GetMapping("/lately/fresh")
+    public BaseResponse<List<LatelyFreshVo>> getLatelyFresh(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<LatelyFreshVo> result = chatService.getLatelyFreshList(request);
+        return ResultUtils.success(result);
     }
 }
