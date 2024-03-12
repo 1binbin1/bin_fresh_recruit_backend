@@ -52,9 +52,9 @@ logging:
 # Third party service connection replicated locally（Regularly replace domain names within 30 days）
 qiniu:
   # Public key
-  accessKey: AInw755zXpHzJg8xC-ZIbgRwR_0QW7F7FikmrZU_
+  accessKey:
   # Private key
-  secretKey: p7YuVGxXvyKszPNthjgfd5nvUraiqu0CvQzAFFsp
+  secretKey:
   # Storage space name
   bucketName: bin-fresh-recruit-backend
   # Domain name/path
@@ -64,8 +64,8 @@ qiniu:
 
 aliyun:
   #  Access key
-  accessKeyId: LTAI5tGAwd5LAJcQR2xYUmNG
+  accessKeyId:
   #  Secret key
-  accessKeySecret: xdxPUgh7Fgdiks0aZEg4UhbDV99YKk
+  accessKeySecret:
   signName: 校招通
   templateCode: SMS_464051255
