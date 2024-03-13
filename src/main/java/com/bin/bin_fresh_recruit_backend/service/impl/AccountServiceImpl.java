@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
+import com.bin.bin_fresh_recruit_backend.config.AliyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
@@ -68,6 +69,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     @Resource
     private QiniuyunOSSConfig qiniuyunOssConfig;
+
+    @Resource
+    private AliyunOSSConfig aliyunOSSConfig;
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
@@ -278,7 +282,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (aId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String uploadResultUrl = qiniuyunOssConfig.upload(file, aId, PHOTO_PREFIX);
+        String uploadResultUrl = aliyunOSSConfig.upload(file, aId, PHOTO_PREFIX);
         if (uploadResultUrl == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }
