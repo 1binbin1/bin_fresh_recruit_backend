@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.constant.DictConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.service.DictService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ public class DictController {
     @Resource
     private DictService dictService;
 
+    @IgnoreAuth
     @GetMapping("/get")
     public BaseResponse<List<String>> getDictList(@RequestParam("dict_type") Integer dictType) {
         if (dictType == null) {

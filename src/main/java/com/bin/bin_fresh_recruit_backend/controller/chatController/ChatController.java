@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByComRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByFreshRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
@@ -38,6 +39,7 @@ public class ChatController {
      * @param request               登录态
      * @return 响应
      */
+    @LoginUser
     @PostMapping("/fresh")
     public BaseResponse<ChatVo> addChatByFresh(@RequestBody AddChatByFreshRequest addChatByFreshRequest,
                                                HttpServletRequest request) {
@@ -57,6 +59,7 @@ public class ChatController {
      * @param request             登录态
      * @return 响应
      */
+    @LoginUser
     @PostMapping("/com")
     public BaseResponse<ChatVo> addChatByCom(@RequestBody AddChatByComRequest addChatByComRequest,
                                              HttpServletRequest request) {
@@ -76,6 +79,7 @@ public class ChatController {
      * @param request 登录态
      * @return 响应
      */
+    @LoginUser
     @GetMapping("/get/fresh")
     public BaseResponse<List<ChatVo>> getChatByFresh(@RequestParam("com_id") String comId, HttpServletRequest request) {
         if (request == null) {
@@ -95,6 +99,7 @@ public class ChatController {
      * @param request 登录态
      * @return 响应
      */
+    @LoginUser
     @GetMapping("/get/com")
     public BaseResponse<List<ChatVo>> getChatByCom(@RequestParam("user_id") String userId, HttpServletRequest request) {
         if (request == null) {
@@ -113,6 +118,7 @@ public class ChatController {
      * @param request 登录态
      * @return 响应数据
      */
+    @LoginUser
     @GetMapping("/lately/fresh")
     public BaseResponse<List<LatelyFreshVo>> getLatelyFresh(HttpServletRequest request) {
         if (request == null) {

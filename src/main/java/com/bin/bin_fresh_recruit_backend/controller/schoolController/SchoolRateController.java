@@ -4,6 +4,7 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class SchoolRateController {
      * @param request 登录态
      * @return 响应数据
      */
+    @LoginUser
     @GetMapping("/rate")
     public BaseResponse<SchoolRateVo> getSchoolFreshRate(HttpServletRequest request) {
         if (request == null) {

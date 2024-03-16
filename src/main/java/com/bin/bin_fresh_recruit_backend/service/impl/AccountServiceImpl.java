@@ -8,6 +8,7 @@ import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.config.AliyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
+import com.bin.bin_fresh_recruit_backend.config.TokenConfig;
 import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
@@ -58,6 +59,9 @@ import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
 @Slf4j
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         implements AccountService {
+    @Resource
+    private TokenConfig tokenConfig;
+
     @Resource
     private AccountMapper accountMapper;
 
@@ -125,7 +129,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 保存信息
         switch (role) {
             case SCHOOL_ROLE:
-                return new AccountInfoVo(id, phone, "");
+                return new AccountInfoVo(id, phone, "", "");
             case COMPANY_ROLE:
                 // 企业
                 CompanyInfo companyInfo = new CompanyInfo();
@@ -139,7 +143,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (insertResult == 0 || !saveResult) {
             throw new BusinessException(ErrorCode.INSERT_ERROR);
         }
-        return new AccountInfoVo(id, phone, "");
+        return new AccountInfoVo(id, phone, "", "");
     }
 
     /**
@@ -148,11 +152,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @param phone    手机号
      * @param password 密码
      * @param role     角色
-     * @param request  登录态
      * @return AccountInfoVo
      */
     @Override
-    public AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request) {
+    public AccountInfoVo accountLogin(String phone, String password, Integer role) {
         // 参数校验
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
@@ -165,10 +168,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.LOGIN_ERROR);
         }
         // 记录登录态
-        AccountInfoVo accountInfoVo = new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar());
-        HttpSession session = request.getSession();
-        session.setAttribute(LoginIdUtils.getSessionId(role), accountInfoVo);
-        return accountInfoVo;
+        // 生成token
+        String token = tokenConfig.getToken(account.getAId(), role);
+        return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token);
     }
 
     /**
@@ -205,7 +207,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (updateResult == 0) {
             throw new BusinessException(ErrorCode.UPDATE_ERROR);
         }
-        return new AccountInfoVo(accountInfo.getAId(), phone, accountInfo.getAAvatar());
+        return new AccountInfoVo(accountInfo.getAId(), phone, accountInfo.getAAvatar(), "");
     }
 
     /**
@@ -222,7 +224,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         HttpSession session = request.getSession();
         String sessionId = LoginIdUtils.getSessionId(role);
         Account loginInfo = getLoginInfo(request, sessionId);
-        AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone(), loginInfo.getAAvatar());
+        AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone(), loginInfo.getAAvatar(), "");
         session.removeAttribute(sessionId);
         return accountInfoVo;
     }
@@ -236,26 +238,25 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      */
     @Override
     public Account getLoginInfo(HttpServletRequest request, String role) {
-        Object attribute;
+        String userId;
         switch (role) {
             case USER_LOGIN_STATE:
-                attribute = request.getSession().getAttribute(USER_LOGIN_STATE);
+                userId = (String) request.getAttribute(USER_LOGIN_STATE);
                 break;
             case COM_LOGIN_STATE:
-                attribute = request.getSession().getAttribute(COM_LOGIN_STATE);
+                userId = (String) request.getAttribute(COM_LOGIN_STATE);
                 break;
             case SCHOOL_LOGIN_STATE:
-                attribute = request.getSession().getAttribute(SCHOOL_LOGIN_STATE);
+                userId = (String) request.getAttribute(SCHOOL_LOGIN_STATE);
                 break;
             default:
                 throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
-        AccountInfoVo accountInfoVo = (AccountInfoVo) attribute;
-        if (accountInfoVo == null || accountInfoVo.getId() == null) {
+        if (StringUtils.isAnyBlank(userId)) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
-        accountQueryWrapper.eq("a_id", accountInfoVo.getId());
+        accountQueryWrapper.eq("a_id", userId);
         Account account = this.getOne(accountQueryWrapper);
         if (account == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
@@ -296,7 +297,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         Account accountInfo = this.getOne(accountQueryWrapper);
-        return new AccountInfoVo(accountInfo.getAId(), accountInfo.getAPhone(), accountInfo.getAAvatar());
+        return new AccountInfoVo(accountInfo.getAId(), accountInfo.getAPhone(), accountInfo.getAAvatar(), "");
     }
 
     /**

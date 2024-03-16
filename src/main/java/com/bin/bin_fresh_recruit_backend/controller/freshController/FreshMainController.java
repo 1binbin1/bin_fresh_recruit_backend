@@ -5,6 +5,8 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,7 @@ public class FreshMainController {
      * @param isRecommend 是否推荐 0-否 1-是
      * @return 响应信息
      */
+    @LoginUser
     @GetMapping("/job/recommend")
     public BaseResponse<List<JobInfoVo>> getJobRecommend(HttpServletRequest request,
                                                          @RequestParam("limit") Integer limit,

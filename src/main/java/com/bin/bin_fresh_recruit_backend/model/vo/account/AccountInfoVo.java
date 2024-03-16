@@ -31,4 +31,7 @@ public class AccountInfoVo implements Serializable {
 
     @JsonProperty("a_avatar")
     private String aAvatar;
+
+    @JsonProperty("token")
+    private String token;
 }

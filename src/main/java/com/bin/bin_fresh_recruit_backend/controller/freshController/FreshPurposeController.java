@@ -4,6 +4,8 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.PurposeDeleteRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.PurposeRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.JobPurposeVo;
@@ -35,6 +37,7 @@ public class FreshPurposeController {
      * @param purposeRequest 请求参数
      * @return 岗位意向信息
      */
+    @LoginUser
     @PostMapping("/add")
     public BaseResponse<JobPurposeVo> addPurpose(HttpServletRequest request, @RequestBody PurposeRequest purposeRequest) {
         if (request == null) {
@@ -54,6 +57,7 @@ public class FreshPurposeController {
      * @param purposeRequest 请求参数
      * @return 岗位意向信息
      */
+    @LoginUser
     @PostMapping("/update")
     public BaseResponse<JobPurposeVo> updatePurpose(HttpServletRequest request, @RequestBody PurposeRequest purposeRequest) {
         if (request == null) {
@@ -73,6 +77,7 @@ public class FreshPurposeController {
      * @param purposeDeleteRequest 请求参数
      * @return 请求响应
      */
+    @LoginUser
     @PostMapping("/delete")
     public BaseResponse<Integer> deletePurpose(HttpServletRequest request, @RequestBody PurposeDeleteRequest purposeDeleteRequest) {
         if (request == null) {
@@ -91,6 +96,7 @@ public class FreshPurposeController {
      * @param request 登录态
      * @return 意向岗位列表
      */
+    @LoginUser
     @GetMapping("/list")
     public BaseResponse<List<JobPurposeVo>> getPurposeList(HttpServletRequest request) {
         if (request == null) {
@@ -107,6 +113,7 @@ public class FreshPurposeController {
      * @param jobId   意向岗位id
      * @return 岗位信息
      */
+    @LoginUser
     @GetMapping("/one")
     public BaseResponse<JobPurposeVo> getPurposeOne(HttpServletRequest request, @RequestParam("id") Integer jobId) {
         if (request == null) {
