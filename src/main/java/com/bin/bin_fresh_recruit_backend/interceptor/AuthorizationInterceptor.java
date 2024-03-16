@@ -6,6 +6,7 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
                 String userRole;
                 try {
                     userInfo = JWT.decode(token).getAudience().get(0);
-                    String[] split = userInfo.split("-");
+                    String[] split = userInfo.split(String.valueOf(CommonConstant.NOT_CONTAIN));
                     userId = split[0];
                     userRole = split[1];
                 } catch (JWTDecodeException j) {

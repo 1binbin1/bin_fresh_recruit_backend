@@ -221,11 +221,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (request == null) {
             return null;
         }
-        HttpSession session = request.getSession();
         String sessionId = LoginIdUtils.getSessionId(role);
         Account loginInfo = getLoginInfo(request, sessionId);
         AccountInfoVo accountInfoVo = new AccountInfoVo(loginInfo.getAId(), loginInfo.getAPhone(), loginInfo.getAAvatar(), "");
-        session.removeAttribute(sessionId);
+        request.removeAttribute(sessionId);
         return accountInfoVo;
     }
 
@@ -368,7 +367,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         String freshId = freshManageRequest.getFreshId();
-        if (StringUtils.isAnyBlank(freshId)) {
+        if (StringUtils.isAnyBlank(freshId) || freshId.contains(String.valueOf(NOT_CONTAIN))) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 默认密码 123456
@@ -433,6 +432,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         for (String freshId : duplicationFreshIds) {
             QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
             freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
+            if (freshId.contains(String.valueOf(NOT_CONTAIN))){
+                continue;
+            }
             accountQueryWrapper.eq("a_id", freshId);
             accountQueryWrapper.eq("a_add", schoolId);
             Account one = this.getOne(accountQueryWrapper);

@@ -139,4 +139,9 @@ public interface CommonConstant {
      * token过期时间（分钟）
      */
     Integer TOKEN_TIME = 30;
+
+    /**
+     * 账号不可包含字符
+     */
+    char NOT_CONTAIN = '-';
 }
