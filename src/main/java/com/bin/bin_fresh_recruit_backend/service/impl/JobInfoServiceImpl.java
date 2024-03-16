@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Time;
 import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.JOB_ID;
@@ -90,6 +91,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfo.setJobIntro(jobIntro);
         jobInfo.setJobRequire(jobRequire);
         jobInfo.setJobPay(jobPay);
+        jobInfo.setCreateTime(new Date());
         boolean save = this.save(jobInfo);
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);

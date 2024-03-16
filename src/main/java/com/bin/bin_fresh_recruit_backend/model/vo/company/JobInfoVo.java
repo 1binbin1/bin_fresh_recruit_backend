@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 岗位信息表
@@ -18,8 +19,8 @@ public class JobInfoVo implements Serializable {
     /**
      * id
      */
-    @JsonProperty("id")
-    private Integer id;
+    @JsonProperty("job_id")
+    private String jobId;
 
     /**
      * 企业ID
@@ -56,4 +57,10 @@ public class JobInfoVo implements Serializable {
      */
     @JsonProperty("job_pay")
     private String jobPay;
+
+    /**
+     * 创建时间
+     */
+    @JsonProperty("create_time")
+    private Date createTime;
 }
