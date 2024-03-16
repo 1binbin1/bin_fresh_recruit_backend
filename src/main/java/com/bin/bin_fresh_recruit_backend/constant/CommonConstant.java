@@ -134,4 +134,9 @@ public interface CommonConstant {
      * 最近聊天对象最大个数
      */
     Integer MAX_LATELY_FRESH = 20;
+
+    /**
+     * token过期时间（分钟）
+     */
+    Integer TOKEN_TIME = 30;
 }

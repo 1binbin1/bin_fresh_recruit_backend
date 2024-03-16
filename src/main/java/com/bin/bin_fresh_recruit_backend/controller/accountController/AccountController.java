@@ -4,6 +4,8 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountLoginOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountLoginRequest;
@@ -40,6 +42,7 @@ public class AccountController {
      * @param accountRegisterForgetRequest 请求参数
      * @return 响应数据
      */
+    @IgnoreAuth
     @PostMapping("/register")
     public BaseResponse<AccountInfoVo> accountRegister(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest) {
         if (accountRegisterForgetRequest == null) {
@@ -66,9 +69,9 @@ public class AccountController {
      * @param accountLoginRequest 请求参数
      * @return 响应数据
      */
+    @IgnoreAuth
     @PostMapping("/login")
-    public BaseResponse<AccountInfoVo> accountLogin(@RequestBody AccountLoginRequest accountLoginRequest,
-                                                    HttpServletRequest request) {
+    public BaseResponse<AccountInfoVo> accountLogin(@RequestBody AccountLoginRequest accountLoginRequest) {
         if (accountLoginRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
@@ -81,7 +84,7 @@ public class AccountController {
         if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
             throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLogin(phone, password, role, request);
+        AccountInfoVo accountInfoVo = accountService.accountLogin(phone, password, role);
         return ResultUtils.success(accountInfoVo);
     }
 
@@ -91,6 +94,7 @@ public class AccountController {
      * @param accountRegisterForgetRequest 请求参数
      * @return 响应数据
      */
+    @IgnoreAuth
     @PostMapping("/forget")
     public BaseResponse<AccountInfoVo> accountForget(@RequestBody AccountRegisterForgetRequest accountRegisterForgetRequest) {
         if (accountRegisterForgetRequest == null) {
@@ -118,6 +122,7 @@ public class AccountController {
      * @param request 登录态
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/loginout")
     public BaseResponse<AccountInfoVo> accountLoginOut(HttpServletRequest request, @RequestBody AccountLoginOutRequest accountLoginOutRequest) {
         if (accountLoginOutRequest == null) {
@@ -137,6 +142,7 @@ public class AccountController {
      * @param file    文件
      * @return 账号信息
      */
+    @LoginUser
     @PostMapping("/upload")
     public BaseResponse<AccountInfoVo> accountUploadAvatar(HttpServletRequest request, @RequestBody MultipartFile file,
                                                            @RequestParam Integer role) {

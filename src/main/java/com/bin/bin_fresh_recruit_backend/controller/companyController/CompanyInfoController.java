@@ -4,6 +4,8 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.company.CompanyInfoRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.CompanyInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.CompanyVo;
@@ -34,6 +36,7 @@ public class CompanyInfoController {
      * @param companyInfoRequest 请求参数
      * @return 修改结果信息
      */
+    @LoginUser
     @PostMapping("/update")
     public BaseResponse<CompanyInfoVo> updateCompanyInfo(HttpServletRequest request, @RequestBody CompanyInfoRequest companyInfoRequest) {
         if (request == null) {
@@ -53,6 +56,7 @@ public class CompanyInfoController {
      * @param comId 企业ID
      * @return 响应信息
      */
+    @IgnoreAuth
     @GetMapping("/one")
     public BaseResponse<CompanyVo> getCompanyOne(@RequestParam("com_id") String comId) {
         if (comId == null){

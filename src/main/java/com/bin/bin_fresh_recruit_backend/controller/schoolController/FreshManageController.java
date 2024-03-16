@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshAddListRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshManageRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
@@ -40,6 +41,7 @@ public class FreshManageController {
      * @param request            登录态
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/add_one")
     public BaseResponse<FreshManageVo> addFresh(HttpServletRequest request, @RequestBody FreshManageRequest freshManageRequest) {
         // 验证是否登录
@@ -61,6 +63,7 @@ public class FreshManageController {
      * @param request            登录态
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/add_list")
     public BaseResponse<List<FreshManageVo>> addFreshList(HttpServletRequest request, @RequestBody FreshAddListRequest freshAddListRequest) {
         // 验证是否登录
@@ -82,6 +85,7 @@ public class FreshManageController {
      * @param freshManageRequest 请求参数
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/delete")
     public BaseResponse<FreshManageVo> deleteFresh(HttpServletRequest request, @RequestBody FreshManageRequest freshManageRequest) {
         if (request == null) {
@@ -102,6 +106,7 @@ public class FreshManageController {
      * @param pageSize 页大小
      * @return 响应数据
      */
+    @LoginUser
     @GetMapping("/list")
     public BaseResponse<PageVo<FreshInfoVo>> getFreshList(HttpServletRequest request,
                                                           @RequestParam("current") long current,

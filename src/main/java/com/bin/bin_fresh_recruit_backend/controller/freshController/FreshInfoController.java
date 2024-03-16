@@ -4,6 +4,8 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.FreshInfoRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
@@ -33,6 +35,7 @@ public class FreshInfoController {
      * @param request          登录态
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/update")
     public BaseResponse<FreshInfoVo> updateFreshInfo(@RequestBody FreshInfoRequest freshInfoRequest,
                                                      HttpServletRequest request) {
@@ -52,6 +55,7 @@ public class FreshInfoController {
      * @param userId 用户ID
      * @return 响应数据
      */
+    @IgnoreAuth
     @GetMapping("/one")
     public BaseResponse<FreshInfoVo> getOneFreshInfo(@RequestParam("user_id") String userId) {
         if (userId == null) {

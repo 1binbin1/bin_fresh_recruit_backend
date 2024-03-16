@@ -4,6 +4,7 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
@@ -42,6 +43,7 @@ public class FreshResumeController {
      * @param file    简历文件
      * @return 简历信息
      */
+    @LoginUser
     @PostMapping("/add")
     public BaseResponse<ResumeInfoVo> addResume(HttpServletRequest request, @RequestBody MultipartFile file) {
         if (request == null) {
@@ -61,6 +63,7 @@ public class FreshResumeController {
      * @param resumeRequest 请求参数
      * @return 已删除的简历ID
      */
+    @LoginUser
     @PostMapping("/delete")
     public BaseResponse<String> deleteResume(HttpServletRequest request, @RequestBody ResumeRequest resumeRequest) {
         if (request == null) {
@@ -81,6 +84,7 @@ public class FreshResumeController {
      * @param resumeId 简历ID
      * @return 简历信息
      */
+    @LoginUser
     @PostMapping("/update")
     public BaseResponse<ResumeInfoVo> updateResume(HttpServletRequest request,
                                                    @RequestBody MultipartFile file,
@@ -101,6 +105,7 @@ public class FreshResumeController {
      * @param request 登录态
      * @return 列表
      */
+    @LoginUser
     @GetMapping("/list")
     public BaseResponse<List<ResumeInfoVo>> getResumeList(HttpServletRequest request) {
         if (request == null) {
@@ -117,6 +122,7 @@ public class FreshResumeController {
      * @param resumeId 简历ID
      * @return 简历信息
      */
+    @LoginUser
     @GetMapping("/one")
     public BaseResponse<ResumeInfoVo> getResumeOne(HttpServletRequest request,
                                                    @RequestParam("resume_id") String resumeId) {
@@ -137,6 +143,7 @@ public class FreshResumeController {
      * @param resumeSendRequest 简历投递请求
      * @return 响应数据
      */
+    @LoginUser
     @PostMapping("/send")
     public BaseResponse<FreshComSendVo> sendResume(HttpServletRequest request, @RequestBody ResumeSendRequest resumeSendRequest) {
         if (request == null) {
@@ -155,6 +162,7 @@ public class FreshResumeController {
      * @param request 请求参数
      * @return 响应参数
      */
+    @LoginUser
     @GetMapping("/send/state")
     public BaseResponse<List<FreshSendStateVo>> getFreshSensState(HttpServletRequest request) {
         if (request == null) {

@@ -38,10 +38,9 @@ public interface AccountService extends IService<Account> {
      * @param phone    手机号
      * @param password 密码
      * @param role     角色
-     * @param request  登录态
      * @return 响应数据
      */
-    AccountInfoVo accountLogin(String phone, String password, Integer role, HttpServletRequest request);
+    AccountInfoVo accountLogin(String phone, String password, Integer role);
 
     /**
      * 忘记密码

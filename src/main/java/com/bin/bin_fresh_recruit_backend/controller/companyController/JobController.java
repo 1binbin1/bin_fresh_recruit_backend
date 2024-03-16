@@ -1,11 +1,12 @@
 package com.bin.bin_fresh_recruit_backend.controller.companyController;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
+import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
@@ -39,6 +40,7 @@ public class JobController {
      * @param jobInfoAddRequest 岗位信息
      * @return 新增的岗位信息
      */
+    @LoginUser
     @PostMapping("/add")
     public BaseResponse<JobInfoVo> addJob(HttpServletRequest request, @RequestBody JobInfoAddRequest jobInfoAddRequest) {
         if (request == null) {
@@ -58,6 +60,7 @@ public class JobController {
      * @param jobInfoUpdateRequest 岗位信息
      * @return 岗位信息
      */
+    @LoginUser
     @PostMapping("/update")
     public BaseResponse<JobInfoVo> updateJob(HttpServletRequest request, @RequestBody JobInfoUpdateRequest jobInfoUpdateRequest) {
         if (request == null) {
@@ -77,6 +80,7 @@ public class JobController {
      * @param jobInfoIdRequest 岗位信息请求
      * @return 删除的岗位ID
      */
+    @LoginUser
     @PostMapping("/delete")
     public BaseResponse<String> deleteJob(HttpServletRequest request, @RequestBody JobInfoIdRequest jobInfoIdRequest) {
         if (request == null) {
@@ -96,6 +100,7 @@ public class JobController {
      * @param resumeFiltrateRequest 请求参数
      * @return 简历投递信息
      */
+    @LoginUser
     @PostMapping("/filrate")
     public BaseResponse<ResumeInfoVo> filrateResume(HttpServletRequest request, @RequestBody ResumeFiltrateRequest resumeFiltrateRequest) {
         if (request == null) {
@@ -114,6 +119,7 @@ public class JobController {
      * @param jobId 岗位ID
      * @return 返回参数
      */
+    @IgnoreAuth
     @GetMapping("/one")
     public BaseResponse<JobInfoVo> getJobOne(@RequestParam(value = "job_id") String jobId) {
         if (jobId == null) {
@@ -130,6 +136,7 @@ public class JobController {
      * @param jobSearchRequest 请求参数
      * @return 响应
      */
+    @IgnoreAuth
     @PostMapping("/list/search")
     public BaseResponse<PageVo<JobInfoVo>> getJobList(@RequestBody JobSearchRequest jobSearchRequest) {
         if (jobSearchRequest == null) {
@@ -145,6 +152,7 @@ public class JobController {
      * @param jobComSearchRequest 请求参数
      * @return 响应信息
      */
+    @IgnoreAuth
     @PostMapping("/list/company")
     public BaseResponse<PageVo<JobInfoVo>> getJobListByCompany(@RequestBody JobComSearchRequest jobComSearchRequest) {
         if (jobComSearchRequest == null) {
@@ -161,6 +169,7 @@ public class JobController {
      * @param jobComSendSearchRequest 请求参数
      * @return 响应参数（分页）
      */
+    @LoginUser
     @PostMapping("/send")
     public BaseResponse<PageVo<JobSendVo>> getFreshSendResumeByCom(HttpServletRequest request, @RequestBody JobComSendSearchRequest jobComSendSearchRequest) {
         if (request == null) {
