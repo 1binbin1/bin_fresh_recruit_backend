@@ -145,8 +145,8 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
      * @return 响应数据
      */
     @Override
-    public SchoolRateVo getRate(HttpServletRequest request) {
-        SchoolRateVo result = new SchoolRateVo();
+    public List<SchoolRateVo> getRate(HttpServletRequest request) {
+        List<SchoolRateVo> result = new ArrayList<>();
         Account schoolAccount = accountService.getLoginInfo(request, SCHOOL_LOGIN_STATE);
         if (schoolAccount == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
@@ -158,7 +158,6 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         accountQueryWrapper.eq("a_role", FRESH_ROLE);
         List<Account> accountList = accountService.list(accountQueryWrapper);
         long totalNum = accountList.size();
-        result.setFreshTotalNum(totalNum);
         // ids
         List<String> freshIds = new ArrayList<>();
         for (Account account : accountList) {
@@ -198,13 +197,14 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
                 default:
             }
         }
-        result.setFreshSendHaveNum(haveNum);
-        result.setFreshSendLookedNum(lookedNum);
-        result.setFreshSendInvitedNum(invitedNum);
-        result.setFreshSendNoPassNum(noPassNum);
-        result.setFreshSendFinishNum(sendFinishNum);
-        result.setFreshSendSuccessNum(successNum);
-        result.setEmploymentRate((float) (successNum / totalNum));
+        result.add(new SchoolRateVo("就业率", (float) (successNum / totalNum) + "%"));
+        result.add(new SchoolRateVo("应届生人数", String.valueOf(totalNum)));
+        result.add(new SchoolRateVo("已投递人数", String.valueOf(haveNum)));
+        result.add(new SchoolRateVo("被查看人数", String.valueOf(lookedNum)));
+        result.add(new SchoolRateVo("初筛不通过人数", String.valueOf(noPassNum)));
+        result.add(new SchoolRateVo("被邀约面试人数", String.valueOf(invitedNum)));
+        result.add(new SchoolRateVo("流程终止人数", String.valueOf(sendFinishNum)));
+        result.add(new SchoolRateVo("应聘成功人数", String.valueOf(successNum)));
         return result;
     }
 

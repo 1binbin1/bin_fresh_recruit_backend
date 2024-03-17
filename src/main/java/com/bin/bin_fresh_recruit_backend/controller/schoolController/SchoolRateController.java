@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 学校就业中心相关数据查询
@@ -36,11 +37,11 @@ public class SchoolRateController {
      */
     @LoginUser
     @GetMapping("/rate")
-    public BaseResponse<SchoolRateVo> getSchoolFreshRate(HttpServletRequest request) {
+    public BaseResponse<List<SchoolRateVo>> getSchoolFreshRate(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        SchoolRateVo result = freshComSendService.getRate(request);
+        List<SchoolRateVo> result = freshComSendService.getRate(request);
         return ResultUtils.success(result);
     }
 }

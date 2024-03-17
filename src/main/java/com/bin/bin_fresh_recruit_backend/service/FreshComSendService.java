@@ -35,7 +35,7 @@ public interface FreshComSendService extends IService<FreshComSend> {
      * @param request 登录态（学校就业中心）
      * @return 响应数据
      */
-    SchoolRateVo getRate(HttpServletRequest request);
+    List<SchoolRateVo> getRate(HttpServletRequest request);
 
     /**
      * 企业获取投递进度
