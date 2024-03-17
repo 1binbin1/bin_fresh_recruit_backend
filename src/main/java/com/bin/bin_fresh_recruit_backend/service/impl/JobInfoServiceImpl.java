@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.sql.Time;
 import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.JOB_ID;
@@ -249,9 +248,8 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         // 查询企业
         QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
         companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
-        companyInfoQueryWrapper.like("com_num", jobSearchRequest.getComNum());
-        companyInfoQueryWrapper.like("com_address", jobSearchRequest.getComAddress());
-        companyInfoQueryWrapper.like("com_name", jobSearchRequest.getSearchContent());
+        companyInfoQueryWrapper.and(j -> j.like("com_num", jobSearchRequest.getComNum()).or().like("com_address", jobSearchRequest.getComAddress()).or().like("com_name", jobSearchRequest.getSearchContent()));
+        companyInfoQueryWrapper.orderByDesc("create_time");
         List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
         PageVo<JobInfoVo> result = new PageVo<>();
         ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
@@ -302,6 +300,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
         jobInfoQueryWrapper.eq("com_id", comId);
         jobInfoQueryWrapper.and(j -> j.like("job_name", searchContent).or().like("job_type", searchContent));
+        jobInfoQueryWrapper.orderByDesc("create_time");
         Page<JobInfo> page = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
         PageVo<JobInfoVo> jobInfoPageVo = new PageVo<>();
         List<JobInfoVo> jobInfoVos = new ArrayList<>();

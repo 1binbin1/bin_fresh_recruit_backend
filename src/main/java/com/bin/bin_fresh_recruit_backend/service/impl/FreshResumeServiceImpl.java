@@ -176,6 +176,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         String userId = loginInfo.getAId();
         QueryWrapper<FreshResume> freshResumeQueryWrapper = new QueryWrapper<>();
         freshResumeQueryWrapper.eq("user_id", userId);
+        freshResumeQueryWrapper.orderByDesc("create_time");
         List<FreshResume> freshResumes = freshResumeMapper.selectList(freshResumeQueryWrapper);
         ArrayList<ResumeInfoVo> resumeInfoVos = new ArrayList<>();
         for (FreshResume freshResume : freshResumes) {

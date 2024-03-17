@@ -90,6 +90,7 @@ public class SchoolIntroServiceImpl extends ServiceImpl<SchoolIntroMapper, Schoo
         String searchContent = messageListRequest.getSearchContent();
         QueryWrapper<SchoolIntro> schoolIntroQueryWrapper = new QueryWrapper<>();
         schoolIntroQueryWrapper.eq("school_id", schoolId);
+        schoolIntroQueryWrapper.orderByDesc("create_time");
         if (searchContent != null) {
             schoolIntroQueryWrapper.and(j -> j.like("title", searchContent).or().like("intro_content", searchContent));
         }

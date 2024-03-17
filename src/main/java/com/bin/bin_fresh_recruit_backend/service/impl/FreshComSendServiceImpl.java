@@ -308,6 +308,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         // 查询
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("user_id", userId);
+        freshComSendQueryWrapper.orderByDesc("create_time");
         List<FreshComSend> comSends = this.list(freshComSendQueryWrapper);
         // 提取ids
         List<String> jobId = new ArrayList<>();

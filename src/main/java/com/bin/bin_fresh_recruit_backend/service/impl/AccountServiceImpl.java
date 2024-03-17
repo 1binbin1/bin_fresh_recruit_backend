@@ -535,6 +535,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
         accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        accountQueryWrapper.orderByDesc("create_time");
         Page<Account> accountPage = this.page(new Page<>(current, pageSize), accountQueryWrapper);
         // 查询信息
         ArrayList<String> freshIds = new ArrayList<>();

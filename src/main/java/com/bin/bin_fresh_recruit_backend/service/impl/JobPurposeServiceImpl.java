@@ -149,6 +149,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         String userId = loginInfo.getAId();
         QueryWrapper<JobPurpose> jobPurposeQueryWrapper = new QueryWrapper<>();
         jobPurposeQueryWrapper.eq("user_id", userId);
+        jobPurposeQueryWrapper.orderByDesc("create_time");
         List<JobPurpose> list = this.list(jobPurposeQueryWrapper);
         ArrayList<JobPurposeVo> jobPurposeVos = new ArrayList<>();
         if (list != null && list.size() > 0) {
