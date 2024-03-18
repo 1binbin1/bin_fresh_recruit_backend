@@ -32,10 +32,10 @@ public class TokenConfig {
                 userRole = RedisConstant.SCHOOL_LOGIN_STATE;
                 break;
             case 1:
-                userRole = RedisConstant.COM_LOGIN_STATE;
+                userRole = RedisConstant.USER_LOGIN_STATE;
                 break;
             case 2:
-                userRole = RedisConstant.USER_LOGIN_STATE;
+                userRole = RedisConstant.COM_LOGIN_STATE;
                 break;
             default:
                 userRole = "";
