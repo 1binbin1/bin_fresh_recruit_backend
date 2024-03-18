@@ -39,7 +39,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -170,7 +169,35 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         // 记录登录态
         // 生成token
         String token = tokenConfig.getToken(account.getAId(), role);
-        return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token);
+        // 获取用户名
+        String userName = "";
+        switch (role) {
+            case SCHOOL_ROLE:
+                userName = "学校就业中心";
+                break;
+            case FRESH_ROLE:
+                QueryWrapper<FreshUserInfo> freshUserInfoQueryWrapper = new QueryWrapper<>();
+                freshUserInfoQueryWrapper.eq("user_id", account.getAId());
+                FreshUserInfo freshUserInfo = freshUserInfoMapper.selectOne(freshUserInfoQueryWrapper);
+                if (freshUserInfo != null) {
+                    userName = freshUserInfo.getUserName();
+                }
+                break;
+            case COMPANY_ROLE:
+                QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
+                companyInfoQueryWrapper.eq("com_id", account.getAId());
+                CompanyInfo companyInfo = companyInfoMapper.selectOne(companyInfoQueryWrapper);
+                if (companyInfo != null) {
+                    userName = companyInfo.getComName();
+                }
+                break;
+            default:
+                userName = "";
+        }
+        if (userName.equals("")) {
+            userName = "请完善用户名";
+        }
+        return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token, userName);
     }
 
     /**
@@ -432,7 +459,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         for (String freshId : duplicationFreshIds) {
             QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
             freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
-            if (freshId.contains(String.valueOf(NOT_CONTAIN))){
+            if (freshId.contains(String.valueOf(NOT_CONTAIN))) {
                 continue;
             }
             accountQueryWrapper.eq("a_id", freshId);

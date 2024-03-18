@@ -13,7 +13,6 @@ import java.io.Serializable;
  * @Time: 2023/11/4 22:54
  */
 @Data
-@AllArgsConstructor
 public class AccountInfoVo implements Serializable {
     private static final long serialVersionUID = 8656263509116674078L;
 
@@ -34,4 +33,25 @@ public class AccountInfoVo implements Serializable {
 
     @JsonProperty("token")
     private String token;
+
+    @JsonProperty("user_name")
+    private String userName;
+
+    public AccountInfoVo(String id, String phone, String aAvatar, String token) {
+        this.id = id;
+        this.phone = phone;
+        this.aAvatar = aAvatar;
+        this.token = token;
+    }
+
+    public AccountInfoVo(String id, String phone, String aAvatar, String token, String userName) {
+        this.id = id;
+        this.phone = phone;
+        this.aAvatar = aAvatar;
+        this.token = token;
+        this.userName = userName;
+    }
+
+    public AccountInfoVo() {
+    }
 }
