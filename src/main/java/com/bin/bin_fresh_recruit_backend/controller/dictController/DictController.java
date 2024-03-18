@@ -34,12 +34,6 @@ public class DictController {
         if (dictType == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        if (!Objects.equals(dictType, DictConstant.DICT_JOB_TYPE) &&
-                !Objects.equals(dictType, DictConstant.DICT_PAY_TYPE) &&
-                !dictType.equals(DictConstant.DICT_CITY_TYPE) &&
-                !dictType.equals(DictConstant.DICT_JOB_NAME)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
         List<String> result = dictService.getDictList(dictType);
         return ResultUtils.success(result);
     }
