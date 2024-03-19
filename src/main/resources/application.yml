@@ -70,6 +70,6 @@ aliyun:
   #  endpoint
   endpoint: oss-cn-guangzhou.aliyuncs.com
   #  buckentName
-  bucketname: bin-fresh-recruit-backend
+  bucketname: 1binbin1
   signName: 校招通
   templateCode: SMS_464051255
