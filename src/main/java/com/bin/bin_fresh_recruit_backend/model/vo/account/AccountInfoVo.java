@@ -54,4 +54,6 @@ public class AccountInfoVo implements Serializable {
 
     public AccountInfoVo() {
     }
+
+
 }

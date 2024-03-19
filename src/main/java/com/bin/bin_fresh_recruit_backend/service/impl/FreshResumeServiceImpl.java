@@ -3,8 +3,7 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
-import com.bin.bin_fresh_recruit_backend.config.AliyunOSSConfig;
-import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
+import com.bin.bin_fresh_recruit_backend.config.UploadServiceConfig;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.FreshResumeMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
@@ -41,10 +40,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
     private FreshResumeMapper freshResumeMapper;
 
     @Resource
-    private QiniuyunOSSConfig qiniuyunOssConfig;
-
-    @Resource
-    private AliyunOSSConfig aliyunOSSConfig;
+    private UploadServiceConfig uploadServiceConfig;
 
     /**
      * 添加简历
@@ -54,7 +50,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
      * @return 简历信息
      */
     @Override
-    public ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file) {
+    public ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file, Integer serviceType) {
         long size = file.getSize();
         if (size > RESUME_SIZE) {
             throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "文件太大，最多只能10MB");
@@ -65,7 +61,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         if (userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String uploadResultUrl = aliyunOSSConfig.upload(file, userId, RESUME_PREFIX);
+        String uploadResultUrl = uploadServiceConfig.upload(file, userId, RESUME_PREFIX, serviceType);
         if (uploadResultUrl == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }
@@ -127,7 +123,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
      * @return 简历信息
      */
     @Override
-    public ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId) {
+    public ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId, Integer serviceType) {
         long size = file.getSize();
         if (size > RESUME_SIZE) {
             throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "文件太大，最多只能10MB");
@@ -137,7 +133,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         if (userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String uploadResultUrl = aliyunOSSConfig.upload(file, userId, RESUME_PREFIX);
+        String uploadResultUrl = uploadServiceConfig.upload(file, userId, RESUME_PREFIX, serviceType);
         if (uploadResultUrl == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }
@@ -208,7 +204,7 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
         freshResumeQueryWrapper.eq("resume_id", resumeId);
         FreshResume freshResume = this.getOne(freshResumeQueryWrapper);
         ResumeInfoVo resumeInfoVo = new ResumeInfoVo();
-        if (freshResume == null){
+        if (freshResume == null) {
             throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         BeanUtils.copyProperties(freshResume, resumeInfoVo);

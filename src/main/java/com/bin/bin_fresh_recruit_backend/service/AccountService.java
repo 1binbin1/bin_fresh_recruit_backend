@@ -76,7 +76,7 @@ public interface AccountService extends IService<Account> {
      * @param file    文件
      * @return 响应数据
      */
-    AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role);
+    AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role, Integer serviceType);
 
     /**
      * 发送验证吗码

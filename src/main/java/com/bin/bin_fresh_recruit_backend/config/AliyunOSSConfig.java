@@ -2,6 +2,8 @@ package com.bin.bin_fresh_recruit_backend.config;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.model.ObjectMetadata;
+import com.bin.bin_fresh_recruit_backend.utils.FileTypeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -63,6 +65,13 @@ public class AliyunOSSConfig {
     public String upload(MultipartFile file, String uid, String pathPrefix) {
         String fileName = getFileName(Objects.requireNonNull(file.getOriginalFilename()));
         try {
+            //        设置上传信息
+            ObjectMetadata objectMetadata = new ObjectMetadata();
+            objectMetadata.setContentLength(file.getSize());
+            objectMetadata.setContentType(FileTypeUtils.getContentType(fileName));
+            objectMetadata.setCacheControl("no-cache");
+            objectMetadata.setHeader("Pragma", "no-cache");
+            objectMetadata.setContentDisposition("inline;filename=" + fileName);
             // 创建OSSClient实例。
             OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
             InputStream inputStream = file.getInputStream();
@@ -75,7 +84,7 @@ public class AliyunOSSConfig {
             //第一个参数 bucket名称
             //第二个参数 上传到oss文件路径和名称 fileName
             //第三个参数 上传文件输入流
-            ossClient.putObject(bucketname, fileName, inputStream);
+            ossClient.putObject(bucketname, fileName, inputStream, objectMetadata);
             ossClient.shutdown();
 
             //把上传之后文件路径返回

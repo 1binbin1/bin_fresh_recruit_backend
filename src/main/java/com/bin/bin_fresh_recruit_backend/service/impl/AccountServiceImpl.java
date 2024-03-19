@@ -5,10 +5,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
-import com.bin.bin_fresh_recruit_backend.config.AliyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
-import com.bin.bin_fresh_recruit_backend.config.QiniuyunOSSConfig;
 import com.bin.bin_fresh_recruit_backend.config.TokenConfig;
+import com.bin.bin_fresh_recruit_backend.config.UploadServiceConfig;
 import com.bin.bin_fresh_recruit_backend.constant.RequestConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
@@ -71,10 +70,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     private CompanyInfoMapper companyInfoMapper;
 
     @Resource
-    private QiniuyunOSSConfig qiniuyunOssConfig;
-
-    @Resource
-    private AliyunOSSConfig aliyunOSSConfig;
+    private UploadServiceConfig uploadServiceConfig;
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
@@ -298,7 +294,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @return 响应数据
      */
     @Override
-    public AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role) {
+    public AccountInfoVo accountUploadAvatar(HttpServletRequest request, MultipartFile file, Integer role, Integer serviceType) {
         Account loginInfo = getLoginInfo(request, LoginIdUtils.getSessionId(role));
         String aId = loginInfo.getAId();
         // 上传头像
@@ -309,7 +305,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (aId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String uploadResultUrl = aliyunOSSConfig.upload(file, aId, PHOTO_PREFIX);
+        String uploadResultUrl = uploadServiceConfig.upload(file, aId, PHOTO_PREFIX, serviceType);
+
         if (uploadResultUrl == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }

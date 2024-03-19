@@ -39,20 +39,21 @@ public class FreshResumeController {
     /**
      * 上传简历附件
      *
-     * @param request 登录态
-     * @param file    简历文件
+     * @param request     登录态
+     * @param file        简历文件
+     * @param serviceType 上传服务类型 0-阿里云（默认）1-七牛云
      * @return 简历信息
      */
     @LoginUser
     @PostMapping("/add")
-    public BaseResponse<ResumeInfoVo> addResume(HttpServletRequest request, @RequestBody MultipartFile file) {
+    public BaseResponse<ResumeInfoVo> addResume(HttpServletRequest request, @RequestBody MultipartFile file, @RequestParam("service_type") Integer serviceType) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (file == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        ResumeInfoVo resumeInfoVo = freshResumeService.addResume(request, file);
+        ResumeInfoVo resumeInfoVo = freshResumeService.addResume(request, file, serviceType);
         return ResultUtils.success(resumeInfoVo);
     }
 
@@ -88,14 +89,15 @@ public class FreshResumeController {
     @PostMapping("/update")
     public BaseResponse<ResumeInfoVo> updateResume(HttpServletRequest request,
                                                    @RequestBody MultipartFile file,
-                                                   @RequestParam("resume_id") String resumeId) {
+                                                   @RequestParam("resume_id") String resumeId,
+                                                   @RequestParam("service_type") Integer serviceType) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (file == null || resumeId == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        ResumeInfoVo resumeInfoVo = freshResumeService.updateResume(request, file, resumeId);
+        ResumeInfoVo resumeInfoVo = freshResumeService.updateResume(request, file, resumeId, serviceType);
         return ResultUtils.success(resumeInfoVo);
     }
 

@@ -23,7 +23,7 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @param file    简历文件
      * @return 简历信息
      */
-    ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file);
+    ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file,Integer serviceType);
 
     /**
      * 删除简历
@@ -42,7 +42,7 @@ public interface FreshResumeService extends IService<FreshResume> {
      * @param resumeId 简历ID
      * @return 响应信息
      */
-    ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId);
+    ResumeInfoVo updateResume(HttpServletRequest request, MultipartFile file, String resumeId,Integer serviceType);
 
     /**
      * 简历列表

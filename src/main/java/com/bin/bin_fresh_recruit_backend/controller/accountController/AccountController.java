@@ -138,21 +138,22 @@ public class AccountController {
     /**
      * 上传头像
      *
-     * @param request 登录态
-     * @param file    文件
+     * @param request     登录态
+     * @param file        文件
+     * @param serviceType 上传服务类型 0-阿里云（默认） 1-七牛云
      * @return 账号信息
      */
     @LoginUser
     @PostMapping("/upload")
     public BaseResponse<AccountInfoVo> accountUploadAvatar(HttpServletRequest request, @RequestBody MultipartFile file,
-                                                           @RequestParam Integer role) {
+                                                           @RequestParam Integer role, @RequestParam("service_type") Integer serviceType) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (file == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        return ResultUtils.success(accountService.accountUploadAvatar(request, file, role));
+        return ResultUtils.success(accountService.accountUploadAvatar(request, file, role, serviceType));
     }
 
 

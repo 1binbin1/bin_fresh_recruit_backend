@@ -23,9 +23,9 @@ public interface DictConstant {
     Integer DICT_CITY_TYPE = 2;
 
     /**
-     * 岗位名称
+     * 企业类型
      */
-    Integer DICT_JOB_NAME = 3;
+    Integer DICT_COM_TYPE = 3;
 
     /**
      * 学历
@@ -36,4 +36,9 @@ public interface DictConstant {
      * 简历状态
      */
     Integer DICT_RESUME_STATUS = 5;
+
+    /**
+     * 企业规模
+     */
+    Integer DICT_COM_NUM = 6;
 }
