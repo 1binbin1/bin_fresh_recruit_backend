@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
+import com.bin.bin_fresh_recruit_backend.config.DefaultFileConfig;
 import com.bin.bin_fresh_recruit_backend.config.PushMsgConfig;
 import com.bin.bin_fresh_recruit_backend.config.TokenConfig;
 import com.bin.bin_fresh_recruit_backend.config.UploadServiceConfig;
@@ -81,6 +82,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Resource
     private FreshUserInfoService freshUserInfoService;
 
+    @Resource
+    private DefaultFileConfig defaultFileConfig;
+
     /**
      * 账号注册
      *
@@ -112,6 +116,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
         String id = IdUtils.getId(role);
         // 保存账号
+        String url = defaultFileConfig.getDefaultAvatar(role);
         int insertResult = 0;
         boolean saveResult;
         Account account = new Account();
@@ -120,6 +125,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         account.setAPhone(phone);
         account.setAPassword(digestPassword);
         account.setAAdd(id);
+        account.setAAvatar(url);
         saveResult = this.save(account);
         // 保存信息
         switch (role) {
@@ -406,11 +412,13 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.ACCOUNT_ERROR);
         }
         // 保存
+        String url = defaultFileConfig.getDefaultAvatar(FRESH_ROLE);
         Account account = new Account();
         account.setAId(freshId);
         account.setAPassword(digestPassword);
         account.setARole(FRESH_ROLE);
         account.setAAdd(schoolId);
+        account.setAAvatar(url);
         boolean save = this.save(account);
         // 添加到应届生信息
         FreshUserInfo freshUserInfo = new FreshUserInfo();
@@ -466,11 +474,13 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
                 continue;
             }
             // 保存
+            String url = defaultFileConfig.getDefaultAvatar(FRESH_ROLE);
             Account account = new Account();
             account.setAId(freshId);
             account.setAPassword(digestPassword);
             account.setARole(FRESH_ROLE);
             account.setAAdd(schoolId);
+            account.setAAvatar(url);
             accountList.add(account);
 
             FreshUserInfo freshUserInfo = new FreshUserInfo();

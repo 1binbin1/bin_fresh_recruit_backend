@@ -299,7 +299,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         String searchContent = jobComSearchRequest.getSearchContent();
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
         jobInfoQueryWrapper.eq("com_id", comId);
-        jobInfoQueryWrapper.and(j -> j.like("job_name", searchContent).or().like("job_type", searchContent));
+        jobInfoQueryWrapper.and(j -> j.like("job_name", searchContent).or().like("job_type", searchContent).or().like("job_intro", searchContent).or().like("job_require", searchContent).or().like("job_pay", searchContent));
         jobInfoQueryWrapper.orderByDesc("create_time");
         Page<JobInfo> page = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
         PageVo<JobInfoVo> jobInfoPageVo = new PageVo<>();

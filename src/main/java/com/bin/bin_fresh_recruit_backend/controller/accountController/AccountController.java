@@ -3,6 +3,7 @@ package com.bin.bin_fresh_recruit_backend.controller.accountController;
 import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
+import com.bin.bin_fresh_recruit_backend.config.DefaultFileConfig;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;

@@ -197,7 +197,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
                 default:
             }
         }
-        result.add(new SchoolRateVo("就业率", (float) (successNum / totalNum) + "%"));
+        result.add(new SchoolRateVo("就业率", (float) (successNum / totalNum) * 100 + "%"));
         result.add(new SchoolRateVo("应届生人数", String.valueOf(totalNum)));
         result.add(new SchoolRateVo("已投递人数", String.valueOf(haveNum)));
         result.add(new SchoolRateVo("被查看人数", String.valueOf(lookedNum)));
@@ -239,6 +239,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         // 分页查询列表
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("t_fresh_com_send.com_id", comId);
+        freshComSendQueryWrapper.orderByDesc("create_time");
         if (sendStatus != -1) {
             freshComSendQueryWrapper.eq("t_fresh_com_send.send_state", sendStatus);
         }
