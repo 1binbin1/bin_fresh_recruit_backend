@@ -41,4 +41,9 @@ public interface DictConstant {
      * 企业规模
      */
     Integer DICT_COM_NUM = 6;
+
+    /**
+     * 轮播图
+     */
+    Integer DICT_SLIDESHOW = 7;
 }

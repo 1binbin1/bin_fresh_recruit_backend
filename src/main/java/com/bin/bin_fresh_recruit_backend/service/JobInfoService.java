@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.model.domain.JobInfo;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 
@@ -85,5 +86,5 @@ public interface JobInfoService extends IService<JobInfo> {
      * @param isRecommend 是否推荐 0-否 1-是
      * @return 岗位列表
      */
-    List<JobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend);
+    List<ComJobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend);
 }

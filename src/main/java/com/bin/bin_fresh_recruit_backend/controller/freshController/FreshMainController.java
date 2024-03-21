@@ -7,6 +7,7 @@ import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +45,9 @@ public class FreshMainController {
      */
     @LoginUser
     @GetMapping("/job/recommend")
-    public BaseResponse<List<JobInfoVo>> getJobRecommend(HttpServletRequest request,
-                                                         @RequestParam("limit") Integer limit,
-                                                         @RequestParam("is_recommend") Integer isRecommend) {
+    public BaseResponse<List<ComJobInfoVo>> getJobRecommend(HttpServletRequest request,
+                                                            @RequestParam("limit") Integer limit,
+                                                            @RequestParam("is_recommend") Integer isRecommend) {
         if (!Objects.equals(isRecommend, CommonConstant.RECOMMEND_YES) &&
                 !Objects.equals(isRecommend, CommonConstant.RECOMMEND_NO)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "是否推荐码错误");
@@ -57,7 +58,7 @@ public class FreshMainController {
         if (Objects.equals(isRecommend, CommonConstant.RECOMMEND_YES) && request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        List<JobInfoVo> jobInfoVos = jobInfoService.getRecommendList(request, limit, isRecommend);
+        List<ComJobInfoVo> jobInfoVos = jobInfoService.getRecommendList(request, limit, isRecommend);
         return ResultUtils.success(jobInfoVos);
     }
 }

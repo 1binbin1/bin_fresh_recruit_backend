@@ -12,6 +12,7 @@ import com.bin.bin_fresh_recruit_backend.mapper.*;
 import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
@@ -20,6 +21,7 @@ import com.bin.bin_fresh_recruit_backend.utils.AlgorithmUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -58,6 +60,9 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
 
     @Resource
     private DictMapper dictMapper;
+
+    @Resource
+    private AccountMapper accountMapper;
 
     /**
      * 新增岗位信息
@@ -325,31 +330,47 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
      * @return 岗位列表
      */
     @Override
-    public List<JobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend) {
+    public List<ComJobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend) {
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
-        List<JobInfoVo> list = new ArrayList<>();
         long count = this.count();
         Random random = new Random();
         Page<JobInfo> jobInfoPage;
+        ArrayList<String> comIds = new ArrayList<>();
+        ArrayList<JobInfo> jobInfos = new ArrayList<>();
         if (Objects.equals(isRecommend, RECOMMEND_NO)) {
             // 随机查询
             Page<JobInfo> infoPage = new Page<>(random.nextInt((int) count) - limit, limit);
             jobInfoPage = jobInfoMapper.selectPage(infoPage, jobInfoQueryWrapper);
             // 处理结果
             for (JobInfo jobInfo : jobInfoPage.getRecords()) {
-                JobInfoVo jobInfoVo = new JobInfoVo();
-                BeanUtils.copyProperties(jobInfo, jobInfoVo);
-                list.add(jobInfoVo);
+                // 构造id
+                comIds.add(jobInfo.getComId());
+                jobInfos.add(jobInfo);
             }
         } else {
             List<JobInfo> listByUserId = getRecommendListByUserId(request, limit);
             for (JobInfo jobInfo : listByUserId) {
-                JobInfoVo jobInfoVo = new JobInfoVo();
-                BeanUtils.copyProperties(jobInfo, jobInfoVo);
-                list.add(jobInfoVo);
+                comIds.add(jobInfo.getComId());
+                jobInfos.add(jobInfo);
             }
         }
-        return list;
+        // 组装结果
+        Map<String, Account> account = new HashMap<>();
+        Map<String, CompanyInfo> companyInfoHashMap = new HashMap<>();
+        if (comIds.size() != 0) {
+            account = accountMapper.getAccount(comIds);
+            companyInfoHashMap = companyInfoMapper.getCompanyInfo(comIds);
+        }
+        ArrayList<ComJobInfoVo> result = new ArrayList<>();
+        for (JobInfo jobInfo : jobInfos) {
+            ComJobInfoVo comJobInfoVo = new ComJobInfoVo();
+            BeanUtils.copyProperties(jobInfo,comJobInfoVo);
+            comJobInfoVo.setAAvatar(account.get(jobInfo.getComId()).getAAvatar());
+            comJobInfoVo.setComAddress(companyInfoHashMap.get(jobInfo.getComId()).getComAddress());
+            comJobInfoVo.setComName(companyInfoHashMap.get(jobInfo.getComId()).getComName());
+            result.add(comJobInfoVo);
+        }
+        return result;
     }
 
     /**
