@@ -335,14 +335,19 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
             // 随机查询
             Page<JobInfo> infoPage = new Page<>(random.nextInt((int) count) - limit, limit);
             jobInfoPage = jobInfoMapper.selectPage(infoPage, jobInfoQueryWrapper);
+            // 处理结果
+            for (JobInfo jobInfo : jobInfoPage.getRecords()) {
+                JobInfoVo jobInfoVo = new JobInfoVo();
+                BeanUtils.copyProperties(jobInfo, jobInfoVo);
+                list.add(jobInfoVo);
+            }
         } else {
-            jobInfoPage = getRecommendListByUserId(request, limit);
-        }
-        // 处理结果
-        for (JobInfo jobInfo : jobInfoPage.getRecords()) {
-            JobInfoVo jobInfoVo = new JobInfoVo();
-            BeanUtils.copyProperties(jobInfo, jobInfoVo);
-            list.add(jobInfoVo);
+            List<JobInfo> listByUserId = getRecommendListByUserId(request, limit);
+            for (JobInfo jobInfo : listByUserId) {
+                JobInfoVo jobInfoVo = new JobInfoVo();
+                BeanUtils.copyProperties(jobInfo, jobInfoVo);
+                list.add(jobInfoVo);
+            }
         }
         return list;
     }
@@ -354,7 +359,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
      * @param limit   个数
      * @return 分页列表
      */
-    private Page<JobInfo> getRecommendListByUserId(HttpServletRequest request, Integer limit) {
+    private List<JobInfo> getRecommendListByUserId(HttpServletRequest request, Integer limit) {
         Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
@@ -391,8 +396,21 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         }
         Random random = new Random();
         long count = this.count(jobInfoQueryWrapper);
-        Page<JobInfo> infoPage = new Page<>(1, limit);
-        return this.page(infoPage, jobInfoQueryWrapper);
+        long recommendNum = Math.min(count, limit);
+        jobInfoQueryWrapper.last(" limit " + recommendNum);
+        List<JobInfo> jobInfos = jobInfoMapper.selectList(jobInfoQueryWrapper);
+        // 补充推荐列表
+        long num = limit - count;
+        List<JobInfo> result = new ArrayList<>();
+        if (num > 0) {
+            QueryWrapper<JobInfo> jobInfoQueryWrapper1 = new QueryWrapper<>();
+            String sql = " limit " + random.nextInt((int) num) + "," + num;
+            jobInfoQueryWrapper1.last(sql);
+            result = jobInfoMapper.selectList(jobInfoQueryWrapper1);
+        }
+        // 合并
+        jobInfos.addAll(result);
+        return jobInfos;
     }
 }
 

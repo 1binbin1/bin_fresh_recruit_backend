@@ -50,13 +50,21 @@ public class FreshResumeServiceImpl extends ServiceImpl<FreshResumeMapper, Fresh
      * @return 简历信息
      */
     @Override
-    public ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file, Integer serviceType) {
+    public ResumeInfoVo addResume(HttpServletRequest request, MultipartFile file, Integer serviceType, Integer num) {
         long size = file.getSize();
         if (size > RESUME_SIZE) {
             throw new BusinessException(ErrorCode.FILE_SIZE_ERROR, "文件太大，最多只能10MB");
         }
         Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
         String userId = loginInfo.getAId();
+        // 判断数量
+        QueryWrapper<FreshResume> freshResumeQueryWrapper1 = new QueryWrapper<>();
+        freshResumeQueryWrapper1.eq("user_id", userId);
+        freshResumeQueryWrapper1.eq("is_delete", NO_DELETE);
+        Long count = freshResumeMapper.selectCount(freshResumeQueryWrapper1);
+        if (count > num){
+            throw new BusinessException(ErrorCode.OVER_ERROR);
+        }
         // 上传文件
         if (userId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

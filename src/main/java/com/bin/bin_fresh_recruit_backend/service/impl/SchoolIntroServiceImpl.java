@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.SCHOOL_LOGIN_STATE;
+import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
 /**
  * @author hongxiaobin
@@ -183,6 +184,40 @@ public class SchoolIntroServiceImpl extends ServiceImpl<SchoolIntroMapper, Schoo
         }
         SchoolMessageVo result = new SchoolMessageVo();
         BeanUtils.copyProperties(one, result);
+        return result;
+    }
+
+    @Override
+    public PageVo<SchoolIntroVo> getByFresh(HttpServletRequest request, Integer current, Integer pageSize) {
+        // 获取登录信息
+        Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String freshId = loginInfo.getAId();
+        // 获取学校id
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_id", freshId);
+        Account one = accountService.getOne(accountQueryWrapper);
+        if (one == null) {
+            throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
+        }
+        QueryWrapper<SchoolIntro> schoolIntroQueryWrapper = new QueryWrapper<>();
+        schoolIntroQueryWrapper.eq("school_id", one.getAAdd());
+        schoolIntroQueryWrapper.orderByDesc("create_time");
+        // 分页查询
+        Page<SchoolIntro> page = this.page(new Page<>(current, pageSize), schoolIntroQueryWrapper);
+        ArrayList<SchoolIntroVo> schoolIntroVos = new ArrayList<>();
+        for (SchoolIntro record : page.getRecords()) {
+            SchoolIntroVo schoolIntroVo = new SchoolIntroVo();
+            BeanUtils.copyProperties(record,schoolIntroVo);
+            schoolIntroVos.add(schoolIntroVo);
+        }
+        PageVo<SchoolIntroVo> result = new PageVo<>();
+        result.setList(schoolIntroVos);
+        result.setCurrent(page.getCurrent());
+        result.setPageSize(page.getSize());
+        result.setTotal(page.getTotal());
         return result;
     }
 }

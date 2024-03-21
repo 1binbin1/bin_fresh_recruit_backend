@@ -197,7 +197,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
                 default:
             }
         }
-        result.add(new SchoolRateVo("就业率", (float) (successNum / totalNum) * 100 + "%"));
+        result.add(new SchoolRateVo("就业率", ((float) (successNum / totalNum) * 100) + "%"));
         result.add(new SchoolRateVo("应届生人数", String.valueOf(totalNum)));
         result.add(new SchoolRateVo("已投递人数", String.valueOf(haveNum)));
         result.add(new SchoolRateVo("被查看人数", String.valueOf(lookedNum)));
@@ -300,7 +300,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
      * @return 响应参数
      */
     @Override
-    public List<FreshSendStateVo> getSendState(HttpServletRequest request) {
+    public PageVo<FreshSendStateVo> getSendState(HttpServletRequest request, Integer current, Integer pageSize) {
         Account loginInfo = accountService.getLoginInfo(request, USER_LOGIN_STATE);
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
@@ -310,7 +310,8 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.orderByDesc("create_time");
-        List<FreshComSend> comSends = this.list(freshComSendQueryWrapper);
+        Page<FreshComSend> page = this.page(new Page<>(current, pageSize), freshComSendQueryWrapper);
+        ArrayList<FreshComSend> comSends = new ArrayList<>(page.getRecords());
         // 提取ids
         List<String> jobId = new ArrayList<>();
         List<String> comIds = new ArrayList<>();
@@ -338,7 +339,12 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
             freshSendStateVo.setJobName(jobInfo.get(comSend.getJobId()).getJobName());
             result.add(freshSendStateVo);
         }
-        return result;
+        PageVo<FreshSendStateVo> pageResult = new PageVo<>();
+        pageResult.setList(result);
+        pageResult.setPageSize(page.getSize());
+        pageResult.setTotal(page.getTotal());
+        pageResult.setCurrent(page.getCurrent());
+        return pageResult;
     }
 }
 

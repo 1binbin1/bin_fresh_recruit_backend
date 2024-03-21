@@ -2,6 +2,7 @@ package com.bin.bin_fresh_recruit_backend.controller.freshController;
 
 import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
@@ -46,14 +47,17 @@ public class FreshResumeController {
      */
     @LoginUser
     @PostMapping("/add")
-    public BaseResponse<ResumeInfoVo> addResume(HttpServletRequest request, @RequestBody MultipartFile file, @RequestParam("service_type") Integer serviceType) {
+    public BaseResponse<ResumeInfoVo> addResume(HttpServletRequest request, @RequestBody MultipartFile file, @RequestParam("service_type") Integer serviceType, @RequestParam("num") Integer num) {
+        if (num == 0) {
+            num = 10;
+        }
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         if (file == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        ResumeInfoVo resumeInfoVo = freshResumeService.addResume(request, file, serviceType);
+        ResumeInfoVo resumeInfoVo = freshResumeService.addResume(request, file, serviceType, num);
         return ResultUtils.success(resumeInfoVo);
     }
 
@@ -166,11 +170,11 @@ public class FreshResumeController {
      */
     @LoginUser
     @GetMapping("/send/state")
-    public BaseResponse<List<FreshSendStateVo>> getFreshSensState(HttpServletRequest request) {
+    public BaseResponse<PageVo<FreshSendStateVo>> getFreshSensState(HttpServletRequest request, @RequestParam("current") Integer current, @RequestParam("page_size") Integer pageSize) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        List<FreshSendStateVo> result = freshComSendService.getSendState(request);
+        PageVo<FreshSendStateVo> result = freshComSendService.getSendState(request,current,pageSize);
         return ResultUtils.success(result);
     }
 }

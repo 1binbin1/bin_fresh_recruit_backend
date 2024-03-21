@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.NO_DELETE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
 /**
@@ -49,6 +50,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         String city = purposeRequest.getCity();
         String jobType = purposeRequest.getJobType();
         String jobPay = purposeRequest.getJobPay();
+        Integer num = purposeRequest.getNum();
         if (StringUtils.isAnyBlank(city, jobType, jobPay)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -56,7 +58,14 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         if (loginInfo == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
+        QueryWrapper<JobPurpose> jobPurposeQueryWrapper = new QueryWrapper<>();
         String userId = loginInfo.getAId();
+        jobPurposeQueryWrapper.eq("user_id", userId);
+        jobPurposeQueryWrapper.eq("is_delete", NO_DELETE);
+        Long count = jobPurposeMapper.selectCount(jobPurposeQueryWrapper);
+        if (count > num) {
+            throw new BusinessException(ErrorCode.OVER_ERROR);
+        }
         JobPurpose jobPurpose = new JobPurpose();
         jobPurpose.setUserId(userId);
         jobPurpose.setCity(city);
@@ -177,7 +186,7 @@ public class JobPurposeServiceImpl extends ServiceImpl<JobPurposeMapper, JobPurp
         }
         JobPurpose jobPurpose = this.getById(jobId);
         JobPurposeVo jobPurposeVo = new JobPurposeVo();
-        if (jobPurpose==null){
+        if (jobPurpose == null) {
             throw new BusinessException(ErrorCode.NO_RESOURCE_ERROR);
         }
         BeanUtils.copyProperties(jobPurpose, jobPurposeVo);

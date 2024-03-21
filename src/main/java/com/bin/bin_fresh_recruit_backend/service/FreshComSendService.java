@@ -9,6 +9,7 @@ import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshSendStateVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -52,5 +53,5 @@ public interface FreshComSendService extends IService<FreshComSend> {
      * @param request 请求参数
      * @return 响应
      */
-    List<FreshSendStateVo> getSendState(HttpServletRequest request);
+    PageVo<FreshSendStateVo> getSendState(HttpServletRequest request,  Integer current,  Integer pageSize);
 }

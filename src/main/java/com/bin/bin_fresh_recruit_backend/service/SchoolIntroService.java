@@ -53,4 +53,14 @@ public interface SchoolIntroService extends IService<SchoolIntro> {
      * @return 响应数据
      */
     SchoolMessageVo deleteMessage(HttpServletRequest request, MessageDeleteRequest messageDeleteRequest);
+
+    /**
+     * 应届生获取资讯列表
+     *
+     * @param request  登录态
+     * @param current  页码
+     * @param pageSize 页大小
+     * @return 响应
+     */
+    PageVo<SchoolIntroVo> getByFresh(HttpServletRequest request, Integer current, Integer pageSize);
 }

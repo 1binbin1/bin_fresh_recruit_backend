@@ -12,6 +12,12 @@ import lombok.Data;
 @Data
 public class PurposeRequest {
     /**
+     * 允许填写数量
+     */
+    @JsonProperty("num")
+    private Integer num = 10;
+
+    /**
      * 意向岗位ID
      */
     @JsonProperty("id")
