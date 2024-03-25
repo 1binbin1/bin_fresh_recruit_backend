@@ -68,7 +68,7 @@ public interface JobInfoService extends IService<JobInfo> {
      * @param jobSearchRequest 搜索条件
      * @return 响应信息
      */
-    PageVo<JobInfoVo> getJobList(JobSearchRequest jobSearchRequest);
+    PageVo<ComJobInfoVo> getJobList(JobSearchRequest jobSearchRequest);
 
     /**
      * 获取企业岗位列表

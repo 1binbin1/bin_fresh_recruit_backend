@@ -19,30 +19,30 @@ public class JobSearchRequest extends PageRequest {
      * 搜索内容
      */
     @JsonProperty("search_content")
-    private String searchContent;
+    private String searchContent = "";
 
 
     /**
      * 岗位类别
      */
     @JsonProperty("job_type")
-    private String jobType;
+    private String jobType = "";
 
     /**
      * 企业地址
      */
     @JsonProperty("com_address")
-    private String comAddress;
+    private String comAddress = "";
 
     /**
      * 企业人数
      */
     @JsonProperty("com_num")
-    private String comNum;
+    private String comNum = "";
 
     /**
      * 企业类型
      */
     @JsonProperty("com_type")
-    private String comType;
+    private String comType = "";
 }

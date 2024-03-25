@@ -8,6 +8,7 @@ import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
+import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
@@ -138,11 +139,11 @@ public class JobController {
      */
     @IgnoreAuth
     @PostMapping("/list/search")
-    public BaseResponse<PageVo<JobInfoVo>> getJobList(@RequestBody JobSearchRequest jobSearchRequest) {
+    public BaseResponse<PageVo<ComJobInfoVo>> getJobList(@RequestBody JobSearchRequest jobSearchRequest) {
         if (jobSearchRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        PageVo<JobInfoVo> pageVo = jobInfoService.getJobList(jobSearchRequest);
+        PageVo<ComJobInfoVo> pageVo = jobInfoService.getJobList(jobSearchRequest);
         return ResultUtils.success(pageVo);
     }
 

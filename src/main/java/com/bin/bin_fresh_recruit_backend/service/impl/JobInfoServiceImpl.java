@@ -246,7 +246,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
      * @return 响应信息
      */
     @Override
-    public PageVo<JobInfoVo> getJobList(JobSearchRequest jobSearchRequest) {
+    public PageVo<ComJobInfoVo> getJobList(JobSearchRequest jobSearchRequest) {
         if (jobSearchRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
@@ -255,11 +255,16 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         if (!Objects.equals(jobSearchRequest.getComType(), "")) {
             companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
         }
-        companyInfoQueryWrapper.and(j -> j.like("com_num", jobSearchRequest.getComNum()).or().like("com_address", jobSearchRequest.getComAddress()).or().like("com_name", jobSearchRequest.getSearchContent()));
+        if (!Objects.equals(jobSearchRequest.getComNum(), "")) {
+            companyInfoQueryWrapper.like("com_num", jobSearchRequest.getComNum());
+        }
+        if (!Objects.equals(jobSearchRequest.getComAddress(), "")) {
+            companyInfoQueryWrapper.like("com_address", jobSearchRequest.getComAddress());
+        }
         companyInfoQueryWrapper.orderByDesc("create_time");
         List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
-        PageVo<JobInfoVo> result = new PageVo<>();
-        ArrayList<JobInfoVo> jobInfoVos = new ArrayList<>();
+        PageVo<ComJobInfoVo> result = new PageVo<>();
+        ArrayList<ComJobInfoVo> jobInfoVos = new ArrayList<>();
         if (companyInfos == null || companyInfos.size() == 0) {
             result.setList(jobInfoVos);
             return result;
@@ -272,16 +277,27 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         long current = jobSearchRequest.getCurrent();
         long pageSize = jobSearchRequest.getPageSize();
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
-        if (!Objects.equals(jobSearchRequest.getComType(), "")) {
+        if (!Objects.equals(jobSearchRequest.getJobType(), "")) {
             jobInfoQueryWrapper.eq("job_type", jobSearchRequest.getJobType());
         }
         jobInfoQueryWrapper.like("job_name", jobSearchRequest.getSearchContent());
         jobInfoQueryWrapper.in("com_id", comIds);
         Page<JobInfo> jobInfoPage = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
+
+        Map<String, Account> account = new HashMap<>();
+        Map<String, CompanyInfo> companyInfoMap = new HashMap<>();
+        if (comIds.size()!=0) {
+            account = accountMapper.getAccount(comIds);
+            companyInfoMap = companyInfoMapper.getCompanyInfo(comIds);
+        }
         // 处理结果
         for (JobInfo jobInfo : jobInfoPage.getRecords()) {
-            JobInfoVo jobInfoVo = new JobInfoVo();
+            ComJobInfoVo jobInfoVo = new ComJobInfoVo();
             BeanUtils.copyProperties(jobInfo, jobInfoVo);
+            // 企业信息
+            jobInfoVo.setAAvatar(account.get(jobInfo.getComId()).getAAvatar());
+            jobInfoVo.setComAddress(companyInfoMap.get(jobInfo.getComId()).getComAddress());
+            jobInfoVo.setComName(companyInfoMap.get(jobInfo.getComId()).getComName());
             jobInfoVos.add(jobInfoVo);
         }
         result.setList(jobInfoVos);
