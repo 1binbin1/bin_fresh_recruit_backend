@@ -252,7 +252,9 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         }
         // 查询企业
         QueryWrapper<CompanyInfo> companyInfoQueryWrapper = new QueryWrapper<>();
-        companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
+        if (!Objects.equals(jobSearchRequest.getComType(), "")) {
+            companyInfoQueryWrapper.eq("com_type", jobSearchRequest.getComType());
+        }
         companyInfoQueryWrapper.and(j -> j.like("com_num", jobSearchRequest.getComNum()).or().like("com_address", jobSearchRequest.getComAddress()).or().like("com_name", jobSearchRequest.getSearchContent()));
         companyInfoQueryWrapper.orderByDesc("create_time");
         List<CompanyInfo> companyInfos = companyInfoMapper.selectList(companyInfoQueryWrapper);
@@ -270,7 +272,9 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         long current = jobSearchRequest.getCurrent();
         long pageSize = jobSearchRequest.getPageSize();
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
-        jobInfoQueryWrapper.eq("job_type", jobSearchRequest.getJobType());
+        if (!Objects.equals(jobSearchRequest.getComType(), "")) {
+            jobInfoQueryWrapper.eq("job_type", jobSearchRequest.getJobType());
+        }
         jobInfoQueryWrapper.like("job_name", jobSearchRequest.getSearchContent());
         jobInfoQueryWrapper.in("com_id", comIds);
         Page<JobInfo> jobInfoPage = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
