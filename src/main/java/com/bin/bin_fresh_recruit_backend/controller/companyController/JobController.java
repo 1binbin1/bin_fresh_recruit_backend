@@ -122,11 +122,11 @@ public class JobController {
      */
     @IgnoreAuth
     @GetMapping("/one")
-    public BaseResponse<JobInfoVo> getJobOne(@RequestParam(value = "job_id") String jobId) {
+    public BaseResponse<ComJobInfoVo> getJobOne(@RequestParam(value = "job_id") String jobId) {
         if (jobId == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        JobInfoVo jobInfoVo = jobInfoService.getJobOne(jobId);
+        ComJobInfoVo jobInfoVo = jobInfoService.getJobOne(jobId);
         return ResultUtils.success(jobInfoVo);
     }
 
@@ -155,11 +155,11 @@ public class JobController {
      */
     @IgnoreAuth
     @PostMapping("/list/company")
-    public BaseResponse<PageVo<JobInfoVo>> getJobListByCompany(@RequestBody JobComSearchRequest jobComSearchRequest) {
+    public BaseResponse<PageVo<ComJobInfoVo>> getJobListByCompany(@RequestBody JobComSearchRequest jobComSearchRequest) {
         if (jobComSearchRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        PageVo<JobInfoVo> pageVoCom = jobInfoService.getJobListByCom(jobComSearchRequest);
+        PageVo<ComJobInfoVo> pageVoCom = jobInfoService.getJobListByCom(jobComSearchRequest);
         return ResultUtils.success(pageVoCom);
     }
 

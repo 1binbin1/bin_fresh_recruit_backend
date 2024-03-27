@@ -27,6 +27,8 @@ import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
+import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_FINISH;
+import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_NO_PASS;
 
 /**
  * @author hongxiaobin
@@ -116,6 +118,8 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.eq("com_id", comId);
         freshComSendQueryWrapper.eq("job_id", jobId);
+        freshComSendQueryWrapper.ne("send_state",SEND_STATUS_FINISH);
+        freshComSendQueryWrapper.ne("send_state",SEND_STATUS_NO_PASS);
         freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
         List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
         if (freshComSends != null && freshComSends.size() > 0) {

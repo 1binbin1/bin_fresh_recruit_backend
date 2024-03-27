@@ -60,7 +60,7 @@ public interface JobInfoService extends IService<JobInfo> {
      * @param jobId 请求参数
      * @return 岗位信息
      */
-    JobInfoVo getJobOne(String jobId);
+    ComJobInfoVo getJobOne(String jobId);
 
     /**
      * 岗位信息列表
@@ -76,7 +76,7 @@ public interface JobInfoService extends IService<JobInfo> {
      * @param jobComSearchRequest 请求条件
      * @return 响应参数
      */
-    PageVo<JobInfoVo> getJobListByCom(JobComSearchRequest jobComSearchRequest);
+    PageVo<ComJobInfoVo> getJobListByCom(JobComSearchRequest jobComSearchRequest);
 
     /**
      * 获取推荐岗位

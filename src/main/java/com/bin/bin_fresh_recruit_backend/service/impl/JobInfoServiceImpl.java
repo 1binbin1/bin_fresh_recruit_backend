@@ -21,7 +21,6 @@ import com.bin.bin_fresh_recruit_backend.utils.AlgorithmUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -227,15 +226,24 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
      * @return 岗位信息
      */
     @Override
-    public JobInfoVo getJobOne(String jobId) {
+    public ComJobInfoVo getJobOne(String jobId) {
         if (StringUtils.isAnyBlank(jobId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         QueryWrapper<JobInfo> jobInfoQueryWrapper = new QueryWrapper<>();
         jobInfoQueryWrapper.eq("job_id", jobId);
         JobInfo jobInfo = this.getOne(jobInfoQueryWrapper);
-        JobInfoVo jobInfoVo = new JobInfoVo();
-        BeanUtils.copyProperties(jobInfo, jobInfoVo);
+        ComJobInfoVo jobInfoVo = new ComJobInfoVo();
+        // 查询企业信息
+        if (jobInfo != null) {
+            ArrayList<String> comIds = new ArrayList<>();
+            comIds.add(jobInfo.getComId());
+            Map<String, CompanyInfo> companyInfo = companyInfoMapper.getCompanyInfo(comIds);
+            BeanUtils.copyProperties(jobInfo, jobInfoVo);
+            jobInfoVo.setComName(companyInfo.get(jobInfo.getComId()).getComName());
+            jobInfoVo.setComAddress(companyInfo.get(jobInfo.getComId()).getComAddress());
+        }
+
         return jobInfoVo;
     }
 
@@ -286,7 +294,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
 
         Map<String, Account> account = new HashMap<>();
         Map<String, CompanyInfo> companyInfoMap = new HashMap<>();
-        if (comIds.size()!=0) {
+        if (comIds.size() != 0) {
             account = accountMapper.getAccount(comIds);
             companyInfoMap = companyInfoMapper.getCompanyInfo(comIds);
         }
@@ -314,7 +322,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
      * @return 响应信息
      */
     @Override
-    public PageVo<JobInfoVo> getJobListByCom(JobComSearchRequest jobComSearchRequest) {
+    public PageVo<ComJobInfoVo> getJobListByCom(JobComSearchRequest jobComSearchRequest) {
         String comId = jobComSearchRequest.getComId();
         if (StringUtils.isAnyBlank(comId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
@@ -327,11 +335,20 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         jobInfoQueryWrapper.and(j -> j.like("job_name", searchContent).or().like("job_type", searchContent).or().like("job_intro", searchContent).or().like("job_require", searchContent).or().like("job_pay", searchContent));
         jobInfoQueryWrapper.orderByDesc("create_time");
         Page<JobInfo> page = this.page(new Page<>(current, pageSize), jobInfoQueryWrapper);
-        PageVo<JobInfoVo> jobInfoPageVo = new PageVo<>();
-        List<JobInfoVo> jobInfoVos = new ArrayList<>();
+        PageVo<ComJobInfoVo> jobInfoPageVo = new PageVo<>();
+        List<ComJobInfoVo> jobInfoVos = new ArrayList<>();
+        // 查询企业信息
+        ArrayList<String> comIds = new ArrayList<>();
+        comIds.add(comId);
+        Map<String, CompanyInfo> companyInfo = companyInfoMapper.getCompanyInfo(comIds);
+        Map<String, Account> account = accountMapper.getAccount(comIds);
         for (JobInfo record : page.getRecords()) {
-            JobInfoVo jobInfoVo = new JobInfoVo();
+            ComJobInfoVo jobInfoVo = new ComJobInfoVo();
             BeanUtils.copyProperties(record, jobInfoVo);
+            // 封装企业信息
+            jobInfoVo.setComName(companyInfo.get(record.getComId()).getComName());
+            jobInfoVo.setComAddress(companyInfo.get(record.getComId()).getComAddress());
+            jobInfoVo.setAAvatar(account.get(record.getComId()).getAAvatar());
             jobInfoVos.add(jobInfoVo);
         }
         jobInfoPageVo.setList(jobInfoVos);
@@ -384,7 +401,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         ArrayList<ComJobInfoVo> result = new ArrayList<>();
         for (JobInfo jobInfo : jobInfos) {
             ComJobInfoVo comJobInfoVo = new ComJobInfoVo();
-            BeanUtils.copyProperties(jobInfo,comJobInfoVo);
+            BeanUtils.copyProperties(jobInfo, comJobInfoVo);
             comJobInfoVo.setAAvatar(account.get(jobInfo.getComId()).getAAvatar());
             comJobInfoVo.setComAddress(companyInfoHashMap.get(jobInfo.getComId()).getComAddress());
             comJobInfoVo.setComName(companyInfoHashMap.get(jobInfo.getComId()).getComName());
