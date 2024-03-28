@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.NO_DELETE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
 import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_FINISH;
 import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_NO_PASS;
@@ -160,6 +161,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
         accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        accountQueryWrapper.eq("is_delete", NO_DELETE);
         List<Account> accountList = accountService.list(accountQueryWrapper);
         long totalNum = accountList.size();
         // ids
@@ -170,6 +172,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         // 查询投递信息
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.in("user_id", freshIds);
+        freshComSendQueryWrapper.in("is_delete", NO_DELETE);
         List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
         // 计算数据
         long haveNum = 0;
@@ -244,6 +247,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("t_fresh_com_send.com_id", comId);
         freshComSendQueryWrapper.orderByDesc("create_time");
+        freshComSendQueryWrapper.eq("is_delete",NO_DELETE);
         if (sendStatus != -1) {
             freshComSendQueryWrapper.eq("t_fresh_com_send.send_state", sendStatus);
         }
@@ -314,6 +318,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.orderByDesc("create_time");
+        freshComSendQueryWrapper.eq("is_delete",NO_DELETE);
         Page<FreshComSend> page = this.page(new Page<>(current, pageSize), freshComSendQueryWrapper);
         ArrayList<FreshComSend> comSends = new ArrayList<>(page.getRecords());
         // 提取ids

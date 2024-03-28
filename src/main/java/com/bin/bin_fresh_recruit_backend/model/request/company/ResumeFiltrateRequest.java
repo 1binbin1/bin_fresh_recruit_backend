@@ -21,6 +21,9 @@ public class ResumeFiltrateRequest implements Serializable {
     @JsonProperty("job_id")
     private String jobId;
 
+    @JsonProperty("resume_id")
+    private String resumeId;
+
     /**
      * 简历状态
      */

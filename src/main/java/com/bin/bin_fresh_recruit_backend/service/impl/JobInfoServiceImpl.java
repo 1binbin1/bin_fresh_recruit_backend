@@ -190,7 +190,8 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         String jobId = resumeFiltrateRequest.getJobId();
         String userId = resumeFiltrateRequest.getUserId();
         Integer sendState = resumeFiltrateRequest.getSendState();
-        if (StringUtils.isAnyBlank(jobId, userId)) {
+        String resumeId = resumeFiltrateRequest.getResumeId();
+        if (StringUtils.isAnyBlank(jobId, userId, resumeId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         if (!Objects.equals(sendState, SendStatus.SEND_STATUS_HAVE) &&
@@ -206,6 +207,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         freshComSendQueryWrapper.eq("com_id", comId);
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.eq("job_id", jobId);
+        freshComSendQueryWrapper.eq("resume_id", resumeId);
         freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
         FreshComSend freshComSend = new FreshComSend();
         freshComSend.setSendState(sendState);
