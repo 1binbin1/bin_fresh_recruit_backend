@@ -34,6 +34,8 @@ public class LatelyFreshVo implements Serializable {
     @JsonProperty("user_name")
     private String userName;
 
+    @JsonProperty("com_name")
+    private String comName;
 
     /**
      * 头像

@@ -22,7 +22,7 @@ public interface CompanyInfoMapper extends BaseMapper<CompanyInfo> {
             "select",
             "*",
             "from t_company_info",
-            "where com_id in",
+            "where is_delete = 0 and com_id in",
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>",
             "#{id}",
             "</foreach>",

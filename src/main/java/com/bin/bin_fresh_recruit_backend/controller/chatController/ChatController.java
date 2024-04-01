@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByComRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.chat.AddChatByFreshRequest;
@@ -73,42 +74,18 @@ public class ChatController {
     }
 
     /**
-     * 应届生获取聊天记录
-     *
-     * @param comId   企业ID
-     * @param request 登录态
-     * @return 响应
-     */
-    @LoginUser
-    @GetMapping("/get/fresh")
-    public BaseResponse<List<ChatVo>> getChatByFresh(@RequestParam("com_id") String comId, HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        if (StringUtils.isAnyBlank(comId)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        List<ChatVo> chatVos = chatService.getChatList(comId, request, CommonConstant.CHAT_USER_FRESH);
-        return ResultUtils.success(chatVos);
-    }
-
-    /**
      * 企业获取聊天记录
      *
      * @param userId  用户ID
-     * @param request 登录态
      * @return 响应
      */
-    @LoginUser
-    @GetMapping("/get/com")
-    public BaseResponse<List<ChatVo>> getChatByCom(@RequestParam("user_id") String userId, HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        if (StringUtils.isAnyBlank(userId)) {
+    @IgnoreAuth
+    @GetMapping("/get/list")
+    public BaseResponse<List<ChatVo>> getChatByCom(@RequestParam("user_id") String userId, @RequestParam("com_id") String comId) {
+        if (StringUtils.isAnyBlank(userId, comId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<ChatVo> chatVos = chatService.getChatList(userId, request, CommonConstant.CHAT_USER_COM);
+        List<ChatVo> chatVos = chatService.getChatList(userId, comId);
         return ResultUtils.success(chatVos);
     }
 
@@ -127,4 +104,21 @@ public class ChatController {
         List<LatelyFreshVo> result = chatService.getLatelyFreshList(request);
         return ResultUtils.success(result);
     }
+
+    /**
+     * 应届生获取最近聊天对象
+     *
+     * @param request 登录态
+     * @return 响应数据
+     */
+    @LoginUser
+    @GetMapping("/lately/com")
+    public BaseResponse<List<LatelyFreshVo>> getLatelyCom(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<LatelyFreshVo> result = chatService.getLatelyComList(request);
+        return ResultUtils.success(result);
+    }
 }
+

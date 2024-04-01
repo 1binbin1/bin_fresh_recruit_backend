@@ -22,7 +22,7 @@ public interface AccountMapper extends BaseMapper<Account> {
             "select",
             "*",
             "from t_account",
-            "where a_id in",
+            "where is_delete = 0 and a_id in",
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>",
             "#{id}",
             "</foreach>",

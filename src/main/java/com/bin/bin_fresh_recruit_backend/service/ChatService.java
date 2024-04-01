@@ -28,12 +28,9 @@ public interface ChatService extends IService<Chat> {
     /**
      * 获取聊天记录
      *
-     * @param aId      账号ID
-     * @param request  登录态
-     * @param userType 发起人
      * @return
      */
-    List<ChatVo> getChatList(String aId, HttpServletRequest request, Integer userType);
+    List<ChatVo> getChatList(String userId, String comId);
 
     /**
      * 企业获取聊天对象
@@ -42,4 +39,13 @@ public interface ChatService extends IService<Chat> {
      * @return 响应参数
      */
     List<LatelyFreshVo> getLatelyFreshList(HttpServletRequest request);
+
+
+    /**
+     * 应届生获取聊天对象
+     *
+     * @param request 登录态
+     * @return 响应参数
+     */
+    List<LatelyFreshVo> getLatelyComList(HttpServletRequest request);
 }

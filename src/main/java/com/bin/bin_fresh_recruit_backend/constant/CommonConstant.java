@@ -136,6 +136,11 @@ public interface CommonConstant {
     Integer MAX_LATELY_FRESH = 20;
 
     /**
+     * 最大记录个数
+     */
+    Integer MAX_CHAT_LIST = 120;
+
+    /**
      * token过期时间（分钟）
      */
     Integer TOKEN_TIME = 30;

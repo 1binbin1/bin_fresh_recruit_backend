@@ -44,6 +44,9 @@ public class ChatVo implements Serializable {
     @JsonProperty("chat_content")
     private String chatContent;
 
+    @JsonProperty("a_avatar")
+    private String aAvatar;
+
     /**
      * 创建时间
      */
