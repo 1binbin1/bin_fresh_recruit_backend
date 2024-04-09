@@ -5,6 +5,9 @@ spring:
   application:
     #  projectName
     name: bin_fresh_recruit_backend
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
 
   #    Swagger-UI starts 404 problem, add interception
   mvc:
