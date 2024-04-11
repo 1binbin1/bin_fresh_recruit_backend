@@ -3,6 +3,7 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.config.UploadServiceConfig;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
@@ -17,22 +18,22 @@ import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.LatelyFreshVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.ChatService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.CHAT_USER_COM;
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.CHAT_USER_FRESH;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.COM_LOGIN_STATE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
+import static com.bin.bin_fresh_recruit_backend.model.enums.ChatType.CHAT_TYPE_CONTENT;
+import static com.bin.bin_fresh_recruit_backend.model.enums.ChatType.CHAT_TYPE_PICTURE;
 
 /**
  * @author hongxiaobin
@@ -57,6 +58,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Resource
     private CompanyInfoMapper companyInfoMapper;
 
+    @Resource
+    private UploadServiceConfig uploadServiceConfig;
+
     /**
      * @param request  登录态
      * @param aId      账号ID
@@ -79,6 +83,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         }
         chat.setUserType(userType);
         chat.setChatContent(content);
+        chat.setChatType(CHAT_TYPE_CONTENT);
         boolean save = this.save(chat);
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
@@ -238,6 +243,47 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             latelyComVos.add(latelyFreshVo);
         }
         return latelyComVos;
+    }
+
+    /**
+     * 发送图片
+     *
+     * @param request
+     * @param multipartFile
+     * @param aId
+     * @param userType
+     * @return
+     */
+    @Override
+    public ChatVo addChatByPicture(HttpServletRequest request, MultipartFile multipartFile, String aId, Integer userType) {
+        Account account = getAccountByUserType(request, userType);
+        // 保存记录
+        Chat chat = new Chat();
+        if (CHAT_USER_FRESH.equals(userType)) {
+            chat.setUserId(account.getAId());
+            chat.setComId(aId);
+        }
+        if (CHAT_USER_COM.equals(userType)) {
+            chat.setUserId(aId);
+            chat.setComId(account.getAId());
+        }
+        // 文件上传
+        if (!Objects.requireNonNull(multipartFile.getContentType()).startsWith("image")) {
+            throw new BusinessException(ErrorCode.NO_IMAGE_ERROR);
+        }
+        String uploadUrl = uploadServiceConfig.upload(multipartFile, account.getAId(), CHAT_PICTURE, 0);
+        if (StringUtils.isAnyBlank(uploadUrl)) {
+            throw new BusinessException(ErrorCode.UPLOAD_ERROR);
+        }
+        chat.setChatContent(uploadUrl);
+        chat.setChatType(CHAT_TYPE_PICTURE);
+        boolean save = this.save(chat);
+        if (!save) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        ChatVo chatVo = new ChatVo();
+        BeanUtils.copyProperties(chat, chatVo);
+        return chatVo;
     }
 
     private Account getAccountByUserType(HttpServletRequest request, Integer userType) {

@@ -45,6 +45,12 @@ public class Chat implements Serializable {
     private String chatContent;
 
     /**
+     * 消息类型 0-文字 1-图片 2-文件
+     */
+    @TableField(value = "chat_type")
+    private Integer chatType;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time")

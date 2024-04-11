@@ -27,10 +27,10 @@ public class UploadServiceConfig {
         String uploadResultUrl;
         switch (serviceType) {
             case 0:
-                uploadResultUrl = aliyunOSSConfig.upload(file, aId, PHOTO_PREFIX);
+                uploadResultUrl = aliyunOSSConfig.upload(file, aId, prefix);
                 break;
             case 1:
-                uploadResultUrl = qiniuyunOssConfig.upload(file, aId, PHOTO_PREFIX);
+                uploadResultUrl = qiniuyunOssConfig.upload(file, aId, prefix);
                 break;
             default:
                 uploadResultUrl = "";

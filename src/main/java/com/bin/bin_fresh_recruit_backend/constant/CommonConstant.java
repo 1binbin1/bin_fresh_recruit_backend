@@ -71,6 +71,11 @@ public interface CommonConstant {
     String RESUME_PREFIX = "fresh_resume";
 
     /**
+     * 聊天图片
+     */
+    String CHAT_PICTURE = "chat_picture";
+
+    /**
      * 不开启推荐
      */
     Integer RECOMMEND_NO = 0;

@@ -15,6 +15,7 @@ import com.bin.bin_fresh_recruit_backend.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -76,7 +77,7 @@ public class ChatController {
     /**
      * 企业获取聊天记录
      *
-     * @param userId  用户ID
+     * @param userId 用户ID
      * @return 响应
      */
     @IgnoreAuth
@@ -119,6 +120,41 @@ public class ChatController {
         }
         List<LatelyFreshVo> result = chatService.getLatelyComList(request);
         return ResultUtils.success(result);
+    }
+
+
+    /**
+     * 企业发送图片
+     *
+     * @param file
+     * @param userId
+     * @return
+     */
+    @LoginUser
+    @PostMapping("/com/picture")
+    public BaseResponse<ChatVo> addChatByFileByCom(@RequestBody MultipartFile file, @RequestParam("user_id") String userId, HttpServletRequest request) {
+        if (file == null || userId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        ChatVo chatVo = chatService.addChatByPicture(request, file, userId, CommonConstant.CHAT_USER_COM);
+        return ResultUtils.success(chatVo);
+    }
+
+    /**
+     * 应届生发送图片
+     *
+     * @param file
+     * @param comId
+     * @return
+     */
+    @LoginUser
+    @PostMapping("/fresh/picture")
+    public BaseResponse<ChatVo> addChatByFileByFresh(@RequestBody MultipartFile file, @RequestParam("com_id") String comId, HttpServletRequest request) {
+        if (file == null || comId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        ChatVo chatVo = chatService.addChatByPicture(request, file, comId, CommonConstant.CHAT_USER_FRESH);
+        return ResultUtils.success(chatVo);
     }
 }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.bin.bin_fresh_recruit_backend.model.domain.Chat;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.ChatVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.chat.LatelyFreshVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -48,4 +49,14 @@ public interface ChatService extends IService<Chat> {
      * @return 响应参数
      */
     List<LatelyFreshVo> getLatelyComList(HttpServletRequest request);
+
+    /**
+     * 企业发送图片
+     * @param request
+     * @param multipartFile
+     * @param userId
+     * @param chatUserCom
+     * @return
+     */
+    ChatVo addChatByPicture(HttpServletRequest request, MultipartFile multipartFile, String userId, Integer chatUserCom);
 }

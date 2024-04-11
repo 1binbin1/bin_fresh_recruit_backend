@@ -44,6 +44,12 @@ public class ChatVo implements Serializable {
     @JsonProperty("chat_content")
     private String chatContent;
 
+    /**
+     * 消息类型 0-文字 1-图片 2-文件
+     */
+    @JsonProperty("chat_type")
+    private Integer chatType;
+
     @JsonProperty("a_avatar")
     private String aAvatar;
 
