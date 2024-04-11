@@ -188,8 +188,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         for (Chat chat : list) {
             LatelyFreshVo latelyFreshVo = new LatelyFreshVo();
             BeanUtils.copyProperties(chat, latelyFreshVo);
-            latelyFreshVo.setAAvatar(accountInfo.get(chat.getUserId()).getAAvatar());
-            latelyFreshVo.setUserName(userInfo.get(chat.getUserId()).getUserName());
+            Account account = accountInfo.get(chat.getUserId());
+            if (account == null) {
+                continue;
+            }
+            latelyFreshVo.setAAvatar(account.getAAvatar());
+            FreshUserInfo freshUserInfo = userInfo.get(chat.getUserId());
+            if (freshUserInfo == null) {
+                continue;
+            }
+            latelyFreshVo.setUserName(freshUserInfo.getUserName());
             latelyFreshVos.add(latelyFreshVo);
         }
         return latelyFreshVos;
@@ -275,6 +283,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         if (StringUtils.isAnyBlank(uploadUrl)) {
             throw new BusinessException(ErrorCode.UPLOAD_ERROR);
         }
+        chat.setUserType(userType);
         chat.setChatContent(uploadUrl);
         chat.setChatType(CHAT_TYPE_PICTURE);
         boolean save = this.save(chat);

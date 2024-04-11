@@ -75,7 +75,7 @@ public class ChatController {
     }
 
     /**
-     * 企业获取聊天记录
+     * 获取聊天记录
      *
      * @param userId 用户ID
      * @return 响应
