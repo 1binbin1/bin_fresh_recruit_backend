@@ -108,6 +108,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         QueryWrapper<Chat> chatQueryWrapper = new QueryWrapper<>();
         chatQueryWrapper.eq("user_id", userId);
         chatQueryWrapper.eq("com_id", comId);
+        chatQueryWrapper.orderByDesc("id");
         String sql = " limit " + CommonConstant.MAX_CHAT_LIST;
         chatQueryWrapper.last(sql);
         chatQueryWrapper.between("create_time", lastDateString, nowDateString);
@@ -115,6 +116,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         if (chatList == null) {
             return new ArrayList<>();
         }
+        Comparator<Chat> chatComparator = Comparator.comparing(Chat::getId);
+        chatList.sort(chatComparator);
         // 查询头像信息
         QueryWrapper<Account> freshAccountQueryWrapper = new QueryWrapper<>();
         freshAccountQueryWrapper.eq("a_id", userId);
