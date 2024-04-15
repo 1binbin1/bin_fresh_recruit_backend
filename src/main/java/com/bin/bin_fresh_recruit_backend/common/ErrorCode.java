@@ -38,6 +38,7 @@ public enum ErrorCode {
     OVER_MAX_ERROR(4021, "应届生数量超过200个"),
     OVER_ERROR(4022, "超过允许数量"),
     NO_IMAGE_ERROR(4023,"上传类型不是图片"),
+    NO_EXCEL_ERROR(4023,"上传类型不是Excel"),
     UPLOAD_ERROR(4024,"上传失败")
     ;
 

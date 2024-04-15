@@ -16,6 +16,7 @@ import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -181,5 +182,18 @@ public class JobController {
         }
         PageVo<JobSendVo> pageVoCom = freshComSendService.getFreshSend(request, jobComSendSearchRequest);
         return ResultUtils.success(pageVoCom);
+    }
+
+    @LoginUser
+    @PostMapping("/batch/add")
+    public BaseResponse<String> batchAddJob(HttpServletRequest request, @RequestBody MultipartFile file) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        if (file == null) {
+            throw new BusinessException(ErrorCode.UPLOAD_ERROR);
+        }
+        String result = jobInfoService.batchAddJobInfo(request, file);
+        return ResultUtils.success(result);
     }
 }

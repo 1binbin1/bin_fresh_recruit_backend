@@ -1,34 +1,40 @@
 package com.bin.bin_fresh_recruit_backend.service.impl;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.read.builder.ExcelReaderBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
-import com.bin.bin_fresh_recruit_backend.constant.DictConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.*;
 import com.bin.bin_fresh_recruit_backend.model.domain.*;
+import com.bin.bin_fresh_recruit_backend.model.dto.BatchJob;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
+import com.bin.bin_fresh_recruit_backend.service.DictService;
 import com.bin.bin_fresh_recruit_backend.service.JobInfoService;
 import com.bin.bin_fresh_recruit_backend.utils.AlgorithmUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.JOB_ID;
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.RECOMMEND_NO;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
+import static com.bin.bin_fresh_recruit_backend.constant.DictConstant.DICT_JOB_TYPE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.COM_LOGIN_STATE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.USER_LOGIN_STATE;
 
@@ -62,6 +68,9 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
 
     @Resource
     private AccountMapper accountMapper;
+
+    @Resource
+    private DictService dictService;
 
     /**
      * 新增岗位信息
@@ -412,6 +421,74 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         return result;
     }
 
+    @Override
+    public String batchAddJobInfo(HttpServletRequest request, MultipartFile file) {
+        Account loginInfo = accountService.getLoginInfo(request, COM_LOGIN_STATE);
+        if (loginInfo == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String comId = loginInfo.getAId();
+        if (StringUtils.isAnyBlank(comId)) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<String> dictList = dictService.getDictList(DICT_JOB_TYPE);
+        String originalFilename = file.getOriginalFilename();
+        assert originalFilename != null;
+        String fileType = originalFilename.substring(originalFilename.lastIndexOf("."));
+        if (!".xls".equalsIgnoreCase(fileType) && !".xlsx".equalsIgnoreCase(fileType)) {
+            throw new BusinessException(ErrorCode.NO_EXCEL_ERROR);
+        }
+        ExcelReaderBuilder excelReaderBuilder;
+        InputStream inputStream = null;
+        try {
+            inputStream = file.getInputStream();
+            excelReaderBuilder = EasyExcel.read(inputStream);
+            List<BatchJob> jobs = excelReaderBuilder.head(BatchJob.class).autoCloseStream(true).ignoreEmptyRow(true).sheet().doReadSync();
+            List<JobInfo> batchJobs = new ArrayList<>();
+            // 读取前两百行
+            int rows = Math.min(jobs.size(), EXCEL_MAX_ROWS);
+            int count = 0;
+            int index = 0;
+            while (count < rows && index < rows) {
+                // 忽略空值，验证岗位类别
+                BatchJob job = jobs.get(index);
+                index++;
+                if (job == null) {
+                    continue;
+                }
+                if (StringUtils.isAnyBlank(job.getJobName(), job.getJobType(), job.getJobIntro(), job.getJobRequire(), job.getJobPay())) {
+                    continue;
+                }
+                if (!dictList.contains(job.getJobType())) {
+                    continue;
+                }
+                JobInfo jobInfo = new JobInfo();
+                jobInfo.setJobName(job.getJobName());
+                jobInfo.setJobType(job.getJobType());
+                jobInfo.setJobIntro(job.getJobIntro());
+                jobInfo.setJobRequire(job.getJobRequire());
+                jobInfo.setJobPay(job.getJobPay());
+                batchJobs.add(jobInfo);
+                count++;
+            }
+            // 批量添加
+            boolean batch = this.saveBatch(batchJobs);
+            if (!batch) {
+                throw new BusinessException(ErrorCode.SQL_ERROR);
+            }
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "解析失败");
+        } finally {
+            try {
+                assert inputStream != null;
+                inputStream.close();
+            } catch (IOException e) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件关闭失败");
+            }
+        }
+        return file.getOriginalFilename();
+    }
+
     /**
      * 获取推荐列表
      *
@@ -435,7 +512,7 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
         }
         // 获取所有类别
         QueryWrapper<Dict> dictQueryWrapper = new QueryWrapper<>();
-        dictQueryWrapper.eq("dict_type", DictConstant.DICT_JOB_TYPE);
+        dictQueryWrapper.eq("dict_type", DICT_JOB_TYPE);
         List<Dict> dicts = dictMapper.selectList(dictQueryWrapper);
         ArrayList<String> dictType = new ArrayList<>();
         for (Dict dict : dicts) {

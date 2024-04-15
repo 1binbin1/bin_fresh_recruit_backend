@@ -7,6 +7,7 @@ import com.bin.bin_fresh_recruit_backend.model.request.company.*;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.ComJobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.ResumeInfoVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -87,4 +88,12 @@ public interface JobInfoService extends IService<JobInfo> {
      * @return 岗位列表
      */
     List<ComJobInfoVo> getRecommendList(HttpServletRequest request, Integer limit, Integer isRecommend);
+
+    /**
+     * 批量新增岗位
+     * @param request
+     * @param file
+     * @return
+     */
+    String batchAddJobInfo(HttpServletRequest request, MultipartFile file);
 }

@@ -154,4 +154,9 @@ public interface CommonConstant {
      * 账号不可包含字符
      */
     char NOT_CONTAIN = '-';
+
+    /**
+     * 批量新增岗位最多
+     */
+    Integer EXCEL_MAX_ROWS = 200;
 }
