@@ -463,6 +463,8 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
                     continue;
                 }
                 JobInfo jobInfo = new JobInfo();
+                jobInfo.setComId(comId);
+                jobInfo.setJobId(IdUtils.getId(JOB_ID));
                 jobInfo.setJobName(job.getJobName());
                 jobInfo.setJobType(job.getJobType());
                 jobInfo.setJobIntro(job.getJobIntro());
