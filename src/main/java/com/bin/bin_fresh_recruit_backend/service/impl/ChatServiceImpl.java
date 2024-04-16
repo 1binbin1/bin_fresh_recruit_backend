@@ -20,14 +20,18 @@ import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.ChatService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.COM_LOGIN_STATE;
@@ -61,6 +65,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Resource
     private UploadServiceConfig uploadServiceConfig;
 
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
     /**
      * @param request  登录态
      * @param aId      账号ID
@@ -84,12 +91,18 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         chat.setUserType(userType);
         chat.setChatContent(content);
         chat.setChatType(CHAT_TYPE_CONTENT);
+        chat.setCreateTime(new Date());
         boolean save = this.save(chat);
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         ChatVo chatVo = new ChatVo();
         BeanUtils.copyProperties(chat, chatVo);
+        // 保存到最近聊天对象
+        Boolean latelyFresh = saveLatelyFresh(chat);
+        if (!latelyFresh) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
         return chatVo;
     }
 
@@ -161,15 +174,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         String comId = loginInfo.getAId();
-        // 查询最近聊天对象
-        QueryWrapper<Chat> chatQueryWrapper = new QueryWrapper<>();
-        chatQueryWrapper.select("user_id,max(create_time) as create_time");
-        chatQueryWrapper.eq("com_id", comId);
-        chatQueryWrapper.groupBy("user_id");
-        chatQueryWrapper.orderByDesc("create_time");
-        String sql = " limit " + CommonConstant.MAX_LATELY_FRESH;
-        chatQueryWrapper.last(sql);
-        List<Chat> list = this.list(chatQueryWrapper);
+        List<Chat> list = getLately(comId, CHAT_USER_COM);
         // 查询用户信息
         ArrayList<String> freshUserIds = new ArrayList<>();
         ArrayList<String> accountIds = new ArrayList<>();
@@ -219,15 +224,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
         String userId = loginInfo.getAId();
-        // 查询最近聊天对象
-        QueryWrapper<Chat> chatQueryWrapper = new QueryWrapper<>();
-        chatQueryWrapper.select("com_id,max(create_time) as create_time");
-        chatQueryWrapper.eq("user_id", userId);
-        chatQueryWrapper.groupBy("com_id");
-        chatQueryWrapper.orderByDesc("create_time");
-        String sql = " limit " + CommonConstant.MAX_LATELY_FRESH;
-        chatQueryWrapper.last(sql);
-        List<Chat> list = this.list(chatQueryWrapper);
+        List<Chat> list = getLately(userId, CHAT_USER_FRESH);
         // 查询用户信息
         ArrayList<String> comUserIds = new ArrayList<>();
         ArrayList<String> accountIds = new ArrayList<>();
@@ -289,12 +286,18 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         chat.setUserType(userType);
         chat.setChatContent(uploadUrl);
         chat.setChatType(CHAT_TYPE_PICTURE);
+        chat.setCreateTime(new Date());
         boolean save = this.save(chat);
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         ChatVo chatVo = new ChatVo();
         BeanUtils.copyProperties(chat, chatVo);
+        // 保存到最近聊天对象
+        Boolean latelyFresh = saveLatelyFresh(chat);
+        if (!latelyFresh) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
         return chatVo;
     }
 
@@ -315,6 +318,61 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             throw new BusinessException(ErrorCode.ACCOUNTNOT_ERROR);
         }
         return account;
+    }
+
+
+    /**
+     * 保存最新的聊天对象 和更新最新时间
+     *
+     * @param latelyObject
+     * @return
+     */
+    private Boolean saveLatelyFresh(Chat latelyObject) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (latelyObject == null) {
+            return false;
+        }
+        String key = latelyObject.getUserId() + ":" + latelyObject.getComId();
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            redisTemplate.delete(key);
+        }
+        redisTemplate.opsForValue().set(key, formatter.format(latelyObject.getCreateTime()), MAX_LATTELY_FRESH_DAYS, TimeUnit.DAYS);
+        return true;
+    }
+
+    /**
+     * 获取聊天对象
+     *
+     * @return
+     */
+    private List<Chat> getLately(String id, Integer userType) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Set<String> keys = new HashSet<>();
+        if (userType.equals(CHAT_USER_FRESH)) {
+            keys = redisTemplate.keys(id + ":" + "*");
+        }
+        if (userType.equals(CHAT_USER_COM)) {
+            keys = redisTemplate.keys("*" + ":" + id);
+        }
+        List<Chat> list = new ArrayList<>();
+        assert keys != null;
+        for (String key : keys) {
+            String time = redisTemplate.opsForValue().get(key);
+            Chat chat = new Chat();
+            String[] strings = key.split(":");
+            if (strings.length != 2) {
+                continue;
+            }
+            chat.setUserId(strings[0]);
+            chat.setComId(strings[1]);
+            try {
+                chat.setCreateTime(formatter.parse(time));
+            } catch (ParseException e) {
+                continue;
+            }
+            list.add(chat);
+        }
+        return list;
     }
 }
 

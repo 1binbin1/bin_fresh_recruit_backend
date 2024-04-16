@@ -141,6 +141,11 @@ public interface CommonConstant {
     Integer MAX_LATELY_FRESH = 20;
 
     /**
+     * 30天内的最近聊天对象
+     */
+    Integer MAX_LATTELY_FRESH_DAYS = 30;
+
+    /**
      * 最大记录个数
      */
     Integer MAX_CHAT_LIST = 120;

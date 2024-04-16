@@ -46,4 +46,9 @@ public interface DictConstant {
      * 轮播图
      */
     Integer DICT_SLIDESHOW = 7;
+
+    /**
+     * 批量岗位新增-Excel模板
+     */
+    Integer BATCH_EXCEL = 8;
 }
