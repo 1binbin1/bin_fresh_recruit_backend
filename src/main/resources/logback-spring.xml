@@ -43,6 +43,21 @@
         <logger level="DEBUG" name="com.baomidou.mybatisplus.core"/>
     </springProfile>
 
+    <springProfile name="prod">
+        <!--root节点 全局日志级别，用来指定最基础的日志输出级别-->
+        <root level="INFO">
+            <!-- 将日志输出到文件-->
+            <appender-ref ref="FILE" />
+            <!-- 将日志输出到控制台-->
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <!-- 子节点向上级传递 局部(包级)日志级别-->
+        <logger level="WARN" name="org.springframework"/>
+        <logger level="WARN" name="com.netflix"/>
+        <logger level="DEBUG" name="org.apache.ibatis"/>
+        <logger level="DEBUG" name="com.baomidou.mybatisplus.core"/>
+    </springProfile>
+
     <springProfile name="onlinepre">
         <root level="INFO">
             <appender-ref ref="FILE" />
