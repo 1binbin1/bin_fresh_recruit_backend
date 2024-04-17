@@ -11,4 +11,10 @@ import lombok.Data;
 public class FreshDataOutRequest {
     @JsonProperty(value = "send_state")
     private Integer[] sendState;
+
+    @JsonProperty(value = "start")
+    private Integer start = 1;
+
+    @JsonProperty(value = "end")
+    private Integer end = 1;
 }

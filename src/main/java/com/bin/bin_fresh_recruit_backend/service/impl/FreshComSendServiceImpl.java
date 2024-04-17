@@ -30,10 +30,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
-import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.NO_DELETE;
+import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
 import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.*;
 
@@ -378,16 +379,18 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         String fileName = schoolId + "_" + format.format(new Date()) + ".xlsx";
         List<List<String>> dataList = new ArrayList<>();
-//        List<String> titleList = Arrays.asList("账号ID", "姓名", "性别", "手机号", "邮箱", "专业", "岗位名称", "岗位类别", "企业名称", "投递状态", "投递时间");
         if (freshDataOutRequest == null || freshDataOutRequest.getSendState().length == 0) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         Integer[] sendState = freshDataOutRequest.getSendState();
+        Integer start = freshDataOutRequest.getStart();
+        Integer end = freshDataOutRequest.getEnd();
         List<Integer> sendStateList = Arrays.asList(sendState);
         // 查找应届生
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
         accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        accountQueryWrapper.last(" limit " + start + "," + end);
         List<Account> list = accountService.list(accountQueryWrapper);
         if (list.size() == 0) {
             return;
@@ -397,9 +400,13 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
             freshIds.add(account.getAId());
         }
         // 查找记录
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate now = LocalDate.now().plusDays(1);
+        LocalDate lastDate = now.minusDays(LATE_SEND_DAY);
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.in("user_id", freshIds);
         freshComSendQueryWrapper.eq("is_delete", NO_DELETE);
+        freshComSendQueryWrapper.gt("send_time", lastDate.format(formatter));
         if (sendState.length != 0) {
             freshComSendQueryWrapper.in("send_state", sendStateList);
         }
@@ -465,6 +472,34 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         ExcelUtil.uploadExcelByEasyExcel(response, fileName, getHead(), dataList);
     }
 
+    @Override
+    public List<String> getCount(HttpServletRequest request) {
+        Account schoolAccount = accountService.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        // 查找应届生
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_add", schoolId);
+        accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        List<Account> list = accountService.list(accountQueryWrapper);
+        ArrayList<String> result = new ArrayList<>();
+        if (list == null) {
+            return result;
+        }
+        int count = list.size();
+        int rangeSize = RANGE_SIZE;
+        int start = 1;
+        while (start <= count) {
+            int end = Math.min(start + rangeSize - 1, count);
+            String range = start + "-" + end;
+            result.add(range);
+            start = end + 1;
+        }
+        return result;
+    }
+
     private String getMapValue(Integer type, Integer key) {
         Map<Integer, String> sexMap = new HashedMap<>();
         sexMap.put(CommonConstant.MAN, "男");
@@ -490,7 +525,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         return result;
     }
 
-    private List<List<String>> getHead(){
+    private List<List<String>> getHead() {
         ArrayList<List<String>> result = new ArrayList<>();
         List<String> titleList = Arrays.asList("账号ID", "姓名", "性别", "手机号", "邮箱", "专业", "岗位名称", "岗位类别", "企业名称", "投递状态", "投递时间");
         for (int i = 0; i < titleList.size(); i++) {

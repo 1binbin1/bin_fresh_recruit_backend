@@ -164,4 +164,14 @@ public interface CommonConstant {
      * 批量新增岗位最多
      */
     Integer EXCEL_MAX_ROWS = 200;
+
+    /**
+     * 数据范围
+     */
+    Integer RANGE_SIZE = 200;
+
+    /**
+     * 只获取半年内的投递记录
+     */
+    Integer LATE_SEND_DAY = 180;
 }

@@ -45,12 +45,41 @@ public class SchoolRateController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 应届生投递记录导出
+     *
+     * @param request
+     * @param freshDataOutRequest
+     * @param response
+     */
     @LoginUser
     @PostMapping("/data/out")
     public void freshDataOut(HttpServletRequest request, @RequestBody FreshDataOutRequest freshDataOutRequest, HttpServletResponse response) {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        freshComSendService.dataOutToExcel(request,response,freshDataOutRequest);
+        if (freshDataOutRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        if (freshDataOutRequest.getSendState() == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        freshComSendService.dataOutToExcel(request, response, freshDataOutRequest);
+    }
+
+    /**
+     * 应届生分段数量
+     *
+     * @param request
+     * @return
+     */
+    @LoginUser
+    @GetMapping("/data/count")
+    public BaseResponse<List<String>> getFreshDataCount(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        List<String> result = freshComSendService.getCount(request);
+        return ResultUtils.success(result);
     }
 }

@@ -58,4 +58,6 @@ public interface FreshComSendService extends IService<FreshComSend> {
     PageVo<FreshSendStateVo> getSendState(HttpServletRequest request,  Integer current,  Integer pageSize);
 
     void dataOutToExcel(HttpServletRequest request, HttpServletResponse response, FreshDataOutRequest freshDataOutRequest);
+
+    List<String> getCount(HttpServletRequest request);
 }
