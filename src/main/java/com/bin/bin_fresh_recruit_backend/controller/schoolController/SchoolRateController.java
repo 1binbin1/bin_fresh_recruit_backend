@@ -5,15 +5,15 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshDataOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.FreshComSendService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -43,5 +43,14 @@ public class SchoolRateController {
         }
         List<SchoolRateVo> result = freshComSendService.getRate(request);
         return ResultUtils.success(result);
+    }
+
+    @LoginUser
+    @PostMapping("/data/out")
+    public void freshDataOut(HttpServletRequest request, @RequestBody FreshDataOutRequest freshDataOutRequest, HttpServletResponse response) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        freshComSendService.dataOutToExcel(request,response,freshDataOutRequest);
     }
 }

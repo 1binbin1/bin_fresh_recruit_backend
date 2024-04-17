@@ -9,27 +9,33 @@ import com.bin.bin_fresh_recruit_backend.constant.CommonConstant;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.*;
 import com.bin.bin_fresh_recruit_backend.model.domain.*;
+import com.bin.bin_fresh_recruit_backend.model.dto.FreshDataOut;
 import com.bin.bin_fresh_recruit_backend.model.enums.SendStatus;
 import com.bin.bin_fresh_recruit_backend.model.request.company.JobComSendSearchRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshDataOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshSendStateVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import com.bin.bin_fresh_recruit_backend.service.*;
+import com.bin.bin_fresh_recruit_backend.utils.ExcelUtil;
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.FRESH_ROLE;
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.NO_DELETE;
 import static com.bin.bin_fresh_recruit_backend.constant.RedisConstant.*;
-import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_FINISH;
-import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.SEND_STATUS_NO_PASS;
+import static com.bin.bin_fresh_recruit_backend.model.enums.SendStatus.*;
 
 /**
  * @author hongxiaobin
@@ -72,7 +78,6 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
 
     @Resource
     private CompanyInfoMapper companyInfoMapper;
-
 
     /**
      * 投递简历
@@ -119,8 +124,8 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.eq("com_id", comId);
         freshComSendQueryWrapper.eq("job_id", jobId);
-        freshComSendQueryWrapper.ne("send_state",SEND_STATUS_FINISH);
-        freshComSendQueryWrapper.ne("send_state",SEND_STATUS_NO_PASS);
+        freshComSendQueryWrapper.ne("send_state", SEND_STATUS_FINISH);
+        freshComSendQueryWrapper.ne("send_state", SEND_STATUS_NO_PASS);
         freshComSendQueryWrapper.eq("is_delete", CommonConstant.NO_DELETE);
         List<FreshComSend> freshComSends = freshComSendService.list(freshComSendQueryWrapper);
         if (freshComSends != null && freshComSends.size() > 0) {
@@ -247,7 +252,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("t_fresh_com_send.com_id", comId);
         freshComSendQueryWrapper.orderByDesc("create_time");
-        freshComSendQueryWrapper.eq("is_delete",NO_DELETE);
+        freshComSendQueryWrapper.eq("is_delete", NO_DELETE);
         if (sendStatus != -1) {
             freshComSendQueryWrapper.eq("t_fresh_com_send.send_state", sendStatus);
         }
@@ -318,7 +323,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
         freshComSendQueryWrapper.eq("user_id", userId);
         freshComSendQueryWrapper.orderByDesc("create_time");
-        freshComSendQueryWrapper.eq("is_delete",NO_DELETE);
+        freshComSendQueryWrapper.eq("is_delete", NO_DELETE);
         Page<FreshComSend> page = this.page(new Page<>(current, pageSize), freshComSendQueryWrapper);
         ArrayList<FreshComSend> comSends = new ArrayList<>(page.getRecords());
         // 提取ids
@@ -354,6 +359,146 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         pageResult.setTotal(page.getTotal());
         pageResult.setCurrent(page.getCurrent());
         return pageResult;
+    }
+
+    /**
+     * 导出数据
+     *
+     * @param request
+     * @param response
+     * @param freshDataOutRequest
+     */
+    @Override
+    public void dataOutToExcel(HttpServletRequest request, HttpServletResponse response, FreshDataOutRequest freshDataOutRequest) {
+        Account schoolAccount = accountService.getLoginInfo(request, SCHOOL_LOGIN_STATE);
+        if (schoolAccount == null) {
+            throw new BusinessException(ErrorCode.NO_LOGIN);
+        }
+        String schoolId = schoolAccount.getAId();
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+        String fileName = schoolId + "_" + format.format(new Date()) + ".xlsx";
+        List<List<String>> dataList = new ArrayList<>();
+//        List<String> titleList = Arrays.asList("账号ID", "姓名", "性别", "手机号", "邮箱", "专业", "岗位名称", "岗位类别", "企业名称", "投递状态", "投递时间");
+        if (freshDataOutRequest == null || freshDataOutRequest.getSendState().length == 0) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        Integer[] sendState = freshDataOutRequest.getSendState();
+        List<Integer> sendStateList = Arrays.asList(sendState);
+        // 查找应届生
+        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+        accountQueryWrapper.eq("a_add", schoolId);
+        accountQueryWrapper.eq("a_role", FRESH_ROLE);
+        List<Account> list = accountService.list(accountQueryWrapper);
+        if (list.size() == 0) {
+            return;
+        }
+        List<String> freshIds = new ArrayList<>();
+        for (Account account : list) {
+            freshIds.add(account.getAId());
+        }
+        // 查找记录
+        QueryWrapper<FreshComSend> freshComSendQueryWrapper = new QueryWrapper<>();
+        freshComSendQueryWrapper.in("user_id", freshIds);
+        freshComSendQueryWrapper.eq("is_delete", NO_DELETE);
+        if (sendState.length != 0) {
+            freshComSendQueryWrapper.in("send_state", sendStateList);
+        }
+        List<FreshComSend> sendList = this.list(freshComSendQueryWrapper);
+        // 查询应届生信息
+        Map<String, FreshUserInfo> freshUserInfo = freshUserInfoMapper.getFreshUserInfo(freshIds);
+        // 查询岗位信息，企业信息
+        ArrayList<String> jobIds = new ArrayList<>();
+        ArrayList<String> comIds = new ArrayList<>();
+        for (FreshComSend freshComSend : sendList) {
+            jobIds.add(freshComSend.getJobId());
+            comIds.add(freshComSend.getComId());
+        }
+        Map<String, JobInfo> jonInfos = new HashMap<>();
+        if (!jobIds.isEmpty()) {
+            jonInfos = jobInfoMapper.getJobInfo(jobIds);
+        }
+        Map<String, CompanyInfo> companyInfo = new HashMap<>();
+        if (!comIds.isEmpty()) {
+            companyInfo = companyInfoMapper.getCompanyInfo(comIds);
+        }
+        // 构造数据
+        for (FreshComSend freshComSend : sendList) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            FreshDataOut dataOut = new FreshDataOut();
+            List<String> result = new ArrayList<>();
+            BeanUtils.copyProperties(freshComSend, dataOut);
+            JobInfo jobInfo = jonInfos.get(freshComSend.getJobId());
+            if (jobInfo != null) {
+                dataOut.setJobName(jobInfo.getJobName());
+                dataOut.setJobType(jobInfo.getJobType());
+            }
+            CompanyInfo comInfo = companyInfo.get(freshComSend.getComId());
+            if (comInfo != null) {
+                dataOut.setComName(comInfo.getComName());
+            }
+            FreshUserInfo userInfo = freshUserInfo.get(freshComSend.getUserId());
+            if (userInfo != null) {
+                BeanUtils.copyProperties(userInfo, dataOut);
+            }
+            // 转为string数组
+            Field[] fields = dataOut.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                field.setAccessible(true);
+                try {
+                    String value;
+                    if (field.getName().equals("userSex")) {
+                        value = getMapValue(0, (Integer) field.get(dataOut));
+                    } else if (field.getName().equals("sendState")) {
+                        value = getMapValue(1, (Integer) field.get(dataOut));
+                    } else if (field.getName().equals("sendTime")) {
+                        value = simpleDateFormat.format(field.get(dataOut));
+                    } else {
+                        value = ((String) field.get(dataOut));
+                    }
+                    result.add(value);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            dataList.add(result);
+        }
+        ExcelUtil.uploadExcelByEasyExcel(response, fileName, getHead(), dataList);
+    }
+
+    private String getMapValue(Integer type, Integer key) {
+        Map<Integer, String> sexMap = new HashedMap<>();
+        sexMap.put(CommonConstant.MAN, "男");
+        sexMap.put(CommonConstant.WOMAN, "女");
+        Map<Integer, String> sendStateMap = new HashedMap<>();
+        sendStateMap.put(SEND_STATUS_HAVE, "已投递");
+        sendStateMap.put(SEND_STATUS_LOOKED, "被查看");
+        sendStateMap.put(SEND_STATUS_INVITED, "邀约面试");
+        sendStateMap.put(SEND_STATUS_NO_PASS, "初筛不通过");
+        sendStateMap.put(SEND_STATUS_FINISH, "流程结束");
+        sendStateMap.put(SEND_STATUS_SUCCESS, "应聘成功");
+        String result = "";
+        switch (type) {
+            case 0:
+                result = sexMap.get(key);
+                break;
+            case 1:
+                result = sendStateMap.get(key);
+                break;
+            default:
+                result = "";
+        }
+        return result;
+    }
+
+    private List<List<String>> getHead(){
+        ArrayList<List<String>> result = new ArrayList<>();
+        List<String> titleList = Arrays.asList("账号ID", "姓名", "性别", "手机号", "邮箱", "专业", "岗位名称", "岗位类别", "企业名称", "投递状态", "投递时间");
+        for (int i = 0; i < titleList.size(); i++) {
+            ArrayList<String> strings = new ArrayList<>();
+            strings.add(titleList.get(i));
+            result.add(strings);
+        }
+        return result;
     }
 }
 

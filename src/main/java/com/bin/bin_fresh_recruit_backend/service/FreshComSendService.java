@@ -5,6 +5,7 @@ import com.bin.bin_fresh_recruit_backend.common.PageVo;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshComSend;
 import com.bin.bin_fresh_recruit_backend.model.request.company.JobComSendSearchRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.fresh.ResumeSendRequest;
+import com.bin.bin_fresh_recruit_backend.model.request.school.FreshDataOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.company.JobSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshComSendVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshSendStateVo;
@@ -12,6 +13,7 @@ import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -54,4 +56,6 @@ public interface FreshComSendService extends IService<FreshComSend> {
      * @return 响应
      */
     PageVo<FreshSendStateVo> getSendState(HttpServletRequest request,  Integer current,  Integer pageSize);
+
+    void dataOutToExcel(HttpServletRequest request, HttpServletResponse response, FreshDataOutRequest freshDataOutRequest);
 }
