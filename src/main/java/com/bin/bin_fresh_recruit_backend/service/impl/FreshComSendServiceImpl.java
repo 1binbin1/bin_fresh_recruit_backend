@@ -390,7 +390,8 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
         accountQueryWrapper.eq("a_role", FRESH_ROLE);
-        accountQueryWrapper.last(" limit " + start + "," + end);
+        accountQueryWrapper.orderByAsc("id");
+        accountQueryWrapper.last(" limit " + (start - 1) + "," + (end - start + 1));
         List<Account> list = accountService.list(accountQueryWrapper);
         if (list.size() == 0) {
             return;
