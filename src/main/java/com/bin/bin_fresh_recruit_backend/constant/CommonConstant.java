@@ -174,4 +174,14 @@ public interface CommonConstant {
      * 只获取半年内的投递记录
      */
     Integer LATE_SEND_DAY = 180;
+
+    /**
+     * 账号密码登录
+     */
+    Integer LOGIN_TYPE_PASSWORD = 0;
+
+    /**
+     * 验证码登录
+     */
+    Integer LOGIN_TYPE_CODE = 1;
 }

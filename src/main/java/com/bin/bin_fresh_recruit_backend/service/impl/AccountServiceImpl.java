@@ -156,17 +156,41 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @return AccountInfoVo
      */
     @Override
-    public AccountInfoVo accountLogin(String phone, String password, Integer role) {
-        // 参数校验
-        String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
-        QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
-        accountQueryWrapper.and(j -> j.eq("a_id", phone).or().eq("a_phone", phone));
-        accountQueryWrapper.eq("a_password", digestPassword);
-        accountQueryWrapper.eq("a_role", role);
-        Account account = accountMapper.selectOne(accountQueryWrapper);
-        if (account == null) {
-            log.info("User login error,phone password or role error");
-            throw new BusinessException(ErrorCode.LOGIN_ERROR);
+    public AccountInfoVo accountLogin(Integer loginType, String phone, String password, Integer role, String code) {
+        Account account = null;
+        switch (loginType) {
+            case 0:
+                // 参数校验
+                String digestPassword = DigestUtils.md5DigestAsHex((PASSWORD_SALT + password).getBytes(StandardCharsets.UTF_8));
+                QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
+                accountQueryWrapper.and(j -> j.eq("a_id", phone).or().eq("a_phone", phone));
+                accountQueryWrapper.eq("a_password", digestPassword);
+                accountQueryWrapper.eq("a_role", role);
+                account = accountMapper.selectOne(accountQueryWrapper);
+                if (account == null) {
+                    log.info("User login error,phone password or role error");
+                    throw new BusinessException(ErrorCode.LOGIN_ERROR);
+                }
+                break;
+            case 1:
+                // 验证手机号是否存在
+                String pattern = "^1[3456789]\\d{9}$";
+                if (!Pattern.matches(pattern, phone)) {
+                    throw new BusinessException(ErrorCode.PHONE_ERROR);
+                }
+                QueryWrapper<Account> codeQueryWrapper = new QueryWrapper<>();
+                codeQueryWrapper.eq("a_phone",phone);
+                codeQueryWrapper.eq("a_role",role);
+                codeQueryWrapper.eq("is_delete",NO_DELETE);
+                account = accountMapper.selectOne(codeQueryWrapper);
+                // 获取验证码并校验
+                String trueCode = redisTemplate.opsForValue().get(LOGIN_VERIFICATION_CODE + account.getAId());
+                if (!code.equals(trueCode)) {
+                    throw new BusinessException(ErrorCode.CODE_ERROR);
+                }
+                break;
+            default:
+                throw new BusinessException(ErrorCode.LOGIN_ERROR, "登录类型错误");
         }
         // 记录登录态
         // 生成token
@@ -196,7 +220,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             default:
                 userName = "";
         }
-        if (userName.equals("")) {
+        if ("".equals(userName)) {
             userName = "请完善用户名";
         }
         return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token, userName);

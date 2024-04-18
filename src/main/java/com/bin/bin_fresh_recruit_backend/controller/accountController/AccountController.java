@@ -21,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Objects;
+
 import static com.bin.bin_fresh_recruit_backend.constant.CommonConstant.*;
 
 /**
@@ -78,14 +80,22 @@ public class AccountController {
         }
         String phone = accountLoginRequest.getPhone();
         Integer role = accountLoginRequest.getRole();
+        Integer loginType = accountLoginRequest.getLoginType();
+        String code = accountLoginRequest.getCode();
         String password = accountLoginRequest.getPassword();
-        if (StringUtils.isAnyBlank(phone, password)) {
+        if (StringUtils.isAnyBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
             throw new BusinessException(ErrorCode.ROLE_ERROR);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLogin(phone, password, role);
+        if (Objects.equals(loginType, LOGIN_TYPE_PASSWORD) && StringUtils.isAnyBlank(password)){
+            throw new BusinessException(ErrorCode.PASSWORD_NULL);
+        }
+        if (Objects.equals(loginType, LOGIN_TYPE_CODE) && StringUtils.isAnyBlank(code)){
+            throw new BusinessException(ErrorCode.CODE_NULL);
+        }
+        AccountInfoVo accountInfoVo = accountService.accountLogin(loginType,phone, password, role,code);
         return ResultUtils.success(accountInfoVo);
     }
 

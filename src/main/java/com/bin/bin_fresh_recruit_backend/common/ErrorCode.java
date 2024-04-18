@@ -39,7 +39,9 @@ public enum ErrorCode {
     OVER_ERROR(4022, "超过允许数量"),
     NO_IMAGE_ERROR(4023,"上传类型不是图片"),
     NO_EXCEL_ERROR(4023,"上传类型不是Excel"),
-    UPLOAD_ERROR(4024,"上传失败")
+    UPLOAD_ERROR(4024,"上传失败"),
+    PASSWORD_NULL(4025,"密码为空"),
+    CODE_NULL(4026,"验证码为空"),
     ;
 
     /**
