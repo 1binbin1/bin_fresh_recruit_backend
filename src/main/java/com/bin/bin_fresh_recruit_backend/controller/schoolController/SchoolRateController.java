@@ -4,6 +4,7 @@ import com.bin.bin_fresh_recruit_backend.common.BaseResponse;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
 import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshDataOutRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.SchoolRateVo;
@@ -73,13 +74,13 @@ public class SchoolRateController {
      * @param request
      * @return
      */
-    @LoginUser
+    @IgnoreAuth
     @GetMapping("/data/count")
-    public BaseResponse<List<String>> getFreshDataCount(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
+    public BaseResponse<List<String>> getFreshDataCount(@RequestParam("school_id")String schoolId) {
+        if (schoolId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        List<String> result = freshComSendService.getCount(request);
+        List<String> result = freshComSendService.getCount(schoolId);
         return ResultUtils.success(result);
     }
 }

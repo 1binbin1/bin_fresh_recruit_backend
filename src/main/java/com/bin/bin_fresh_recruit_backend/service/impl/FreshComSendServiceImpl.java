@@ -474,12 +474,7 @@ public class FreshComSendServiceImpl extends ServiceImpl<FreshComSendMapper, Fre
     }
 
     @Override
-    public List<String> getCount(HttpServletRequest request) {
-        Account schoolAccount = accountService.getLoginInfo(request, SCHOOL_LOGIN_STATE);
-        if (schoolAccount == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        String schoolId = schoolAccount.getAId();
+    public List<String> getCount(String schoolId) {
         // 查找应届生
         QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
         accountQueryWrapper.eq("a_add", schoolId);
