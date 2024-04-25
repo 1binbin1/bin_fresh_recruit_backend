@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bin.bin_fresh_recruit_backend.mapper.TThemeSettingMapper">
+
+    <resultMap id="BaseResultMap" type="com.bin.bin_fresh_recruit_backend.model.domain.ThemeSetting">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="aId" column="a_id" jdbcType="VARCHAR"/>
+            <result property="tsThemeColor" column="ts_theme_color" jdbcType="VARCHAR"/>
+            <result property="tsThemeActiveColor" column="ts_theme_active_color" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,a_id,ts_theme_color,
+        ts_theme_active_color,create_time,update_time,
+        is_delete
+    </sql>
+</mapper>

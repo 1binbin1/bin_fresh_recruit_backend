@@ -17,6 +17,7 @@ import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.CompanyInfo;
 import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
+import com.bin.bin_fresh_recruit_backend.model.domain.ThemeSetting;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshAddListRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshManageRequest;
@@ -25,6 +26,7 @@ import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.FreshManageVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
+import com.bin.bin_fresh_recruit_backend.service.ThemeSettingService;
 import com.bin.bin_fresh_recruit_backend.utils.ArrayUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
 import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
@@ -85,6 +87,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
     @Resource
     private DefaultFileConfig defaultFileConfig;
 
+    @Resource
+    private ThemeSettingService themeSettingService;
+
     /**
      * 账号注册
      *
@@ -144,6 +149,13 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if (insertResult == 0 || !saveResult) {
             throw new BusinessException(ErrorCode.INSERT_ERROR);
         }
+        // 保存主题
+        ThemeSetting themeSetting = new ThemeSetting();
+        themeSetting.setAId(id);
+        boolean save = themeSettingService.save(themeSetting);
+        if (!save) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
         return new AccountInfoVo(id, phone, "", "");
     }
 
@@ -179,9 +191,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
                     throw new BusinessException(ErrorCode.PHONE_ERROR);
                 }
                 QueryWrapper<Account> codeQueryWrapper = new QueryWrapper<>();
-                codeQueryWrapper.eq("a_phone",phone);
-                codeQueryWrapper.eq("a_role",role);
-                codeQueryWrapper.eq("is_delete",NO_DELETE);
+                codeQueryWrapper.eq("a_phone", phone);
+                codeQueryWrapper.eq("a_role", role);
+                codeQueryWrapper.eq("is_delete", NO_DELETE);
                 account = accountMapper.selectOne(codeQueryWrapper);
                 // 获取验证码并校验
                 String trueCode = redisTemplate.opsForValue().get(LOGIN_VERIFICATION_CODE + account.getAId());
@@ -454,6 +466,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         FreshManageVo manageVo = new FreshManageVo();
         manageVo.setFreshId(freshId);
         manageVo.setSchoolId(schoolId);
+        ThemeSetting themeSetting = new ThemeSetting();
+        themeSetting.setAId(freshId);
+        boolean themeSave = themeSettingService.save(themeSetting);
+        if (!themeSave) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
         return manageVo;
     }
 
@@ -485,6 +503,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         List<Account> accountList = new ArrayList<>();
         List<FreshUserInfo> freshUserList = new ArrayList<>();
         List<FreshManageVo> freshManageVos = new ArrayList<>();
+        List<ThemeSetting> themeSettings = new ArrayList<>();
         for (String freshId : duplicationFreshIds) {
             QueryWrapper<Account> accountQueryWrapper = new QueryWrapper<>();
             freshId = START_CHAR + schoolId.substring(schoolId.length() - 4) + "_" + freshId;
@@ -515,6 +534,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             freshManageVo.setFreshId(freshId);
             freshManageVo.setSchoolId(schoolId);
             freshManageVos.add(freshManageVo);
+
+            ThemeSetting themeSetting = new ThemeSetting();
+            themeSetting.setAId(freshId);
+            themeSettings.add(themeSetting);
         }
         // 批量添加
         boolean saveBatch = this.saveBatch(accountList);
@@ -523,6 +546,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         }
         boolean batch = freshUserInfoService.saveBatch(freshUserList);
         if (freshUserList.size() != 0 && !batch) {
+            throw new BusinessException(ErrorCode.SQL_ERROR);
+        }
+        boolean batch1 = themeSettingService.saveBatch(themeSettings);
+        if (themeSettings.size()!=0 && !batch1){
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         return freshManageVos;
