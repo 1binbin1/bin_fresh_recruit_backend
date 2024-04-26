@@ -34,18 +34,19 @@ public class ThemeSettingServiceImpl extends ServiceImpl<TThemeSettingMapper, Th
         } else {
             // 更新
             QueryWrapper<ThemeSetting> saveQw = new QueryWrapper<>();
+            ThemeSetting newTheme = new ThemeSetting();
             saveQw.eq("a_id", aId);
             switch (themeType) {
                 case 1:
-                    saveQw.eq("ts_theme_color", color);
+                    newTheme.setTsThemeColor(color);
                     break;
                 case 2:
-                    saveQw.eq("ts_theme_active_color", color);
+                    newTheme.setTsThemeActiveColor(color);
                     break;
                 default:
                     throw new BusinessException(ErrorCode.NULL_ERROR);
             }
-            save = this.update(saveQw);
+            save = this.update(newTheme,saveQw);
         }
         if (!save) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
