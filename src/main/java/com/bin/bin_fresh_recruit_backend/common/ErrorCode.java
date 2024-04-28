@@ -42,6 +42,7 @@ public enum ErrorCode {
     UPLOAD_ERROR(4024,"上传失败"),
     PASSWORD_NULL(4025,"密码为空"),
     CODE_NULL(4026,"验证码为空"),
+    IP_NULL(4026,"IP地址解析失败"),
     ;
 
     /**
