@@ -1,7 +1,7 @@
 spring:
   profiles:
     #  Indicate the environment
-    active: prod
+    active: dev
   application:
     #  projectName
     name: bin_fresh_recruit_backend
