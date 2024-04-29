@@ -40,7 +40,7 @@ public interface AccountService extends IService<Account> {
      * @param role     角色
      * @return 响应数据
      */
-    AccountInfoVo accountLogin(Integer loginType, String phone, String password, Integer role,String code);
+    AccountInfoVo accountLogin(HttpServletRequest request,Integer loginType, String phone, String password, Integer role,String code,Integer isFilterLately);
 
     /**
      * 忘记密码

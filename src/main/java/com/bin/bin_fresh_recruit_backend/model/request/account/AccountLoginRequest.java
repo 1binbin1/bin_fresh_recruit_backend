@@ -46,4 +46,10 @@ public class AccountLoginRequest implements Serializable {
      */
     @JsonProperty("role")
     private Integer role;
+
+    /**
+     * 是否过滤频繁登录 1-过滤
+     */
+    @JsonProperty
+    private Integer isFilterLately = 0;
 }

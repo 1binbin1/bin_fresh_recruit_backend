@@ -74,7 +74,7 @@ public class AccountController {
      */
     @IgnoreAuth
     @PostMapping("/login")
-    public BaseResponse<AccountInfoVo> accountLogin(@RequestBody AccountLoginRequest accountLoginRequest) {
+    public BaseResponse<AccountInfoVo> accountLogin(HttpServletRequest request,@RequestBody AccountLoginRequest accountLoginRequest) {
         if (accountLoginRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
@@ -83,6 +83,7 @@ public class AccountController {
         Integer loginType = accountLoginRequest.getLoginType();
         String code = accountLoginRequest.getCode();
         String password = accountLoginRequest.getPassword();
+        Integer isFilterLately = accountLoginRequest.getIsFilterLately();
         if (StringUtils.isAnyBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -95,7 +96,7 @@ public class AccountController {
         if (Objects.equals(loginType, LOGIN_TYPE_CODE) && StringUtils.isAnyBlank(code)){
             throw new BusinessException(ErrorCode.CODE_NULL);
         }
-        AccountInfoVo accountInfoVo = accountService.accountLogin(loginType,phone, password, role,code);
+        AccountInfoVo accountInfoVo = accountService.accountLogin(request,loginType,phone, password, role,code,isFilterLately);
         return ResultUtils.success(accountInfoVo);
     }
 

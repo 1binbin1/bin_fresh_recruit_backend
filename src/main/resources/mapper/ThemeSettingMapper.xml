@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bin.bin_fresh_recruit_backend.mapper.TThemeSettingMapper">
+<mapper namespace="com.bin.bin_fresh_recruit_backend.mapper.ThemeSettingMapper">
 
     <resultMap id="BaseResultMap" type="com.bin.bin_fresh_recruit_backend.model.domain.ThemeSetting">
             <id property="id" column="id" jdbcType="INTEGER"/>

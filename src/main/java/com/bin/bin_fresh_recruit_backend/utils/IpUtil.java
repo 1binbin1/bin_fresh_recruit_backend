@@ -1,11 +1,17 @@
 package com.bin.bin_fresh_recruit_backend.utils;
 
+import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
+import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
+import com.bin.bin_fresh_recruit_backend.model.vo.other.IpVo;
+import eu.bitwalker.useragentutils.UserAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.lionsoul.ip2region.xdb.Searcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -324,5 +330,48 @@ public class IpUtil {
         } catch (UnknownHostException e) {
         }
         return "未知";
+    }
+
+    /**
+     * 获取设备信息
+     * @param request
+     * @return
+     */
+    public static UserAgent getUserAgent(HttpServletRequest request){
+        UserAgent userAgent;
+        userAgent = UserAgent.parseUserAgentString(request.getHeader("user-agent"));
+        return userAgent;
+    }
+
+    /**
+     * 获取登录状态信息（IP解析）
+     * @param ipAddr ip地址
+     * @return 状态信息
+     */
+    public static IpVo getIpVoBaseResponse(@RequestParam("ip") String ipAddr) {
+        log.info("获取到IP地址为：{}",ipAddr);
+        String cityInfo;
+        if (!StringUtils.isAnyBlank(ipAddr)) {
+            cityInfo = IpUtil.getIp2region(ipAddr);
+        } else {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        if (StringUtils.isAnyBlank(cityInfo)) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        assert cityInfo != null;
+        String[] strings = cityInfo.split("\\|");
+        if (strings == null || strings.length < 4) {
+            throw new BusinessException(ErrorCode.IP_NULL);
+        }
+        log.info("IP={}解析结果为:{}", ipAddr, cityInfo);
+        IpVo ipVo = new IpVo();
+        ipVo.setIpAddress(ipAddr);
+        ipVo.setCountry(strings[0]);
+        ipVo.setProvince(strings[1]);
+        ipVo.setCity(strings[2]);
+        ipVo.setAddress(ipVo.getCountry() + "·" + ipVo.getProvince() + "·" + ipVo.getCity());
+        ipVo.setCityInfo(cityInfo);
+        return ipVo;
     }
 }

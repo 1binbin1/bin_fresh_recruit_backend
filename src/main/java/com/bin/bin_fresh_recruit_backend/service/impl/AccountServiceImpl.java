@@ -14,22 +14,23 @@ import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.AccountMapper;
 import com.bin.bin_fresh_recruit_backend.mapper.CompanyInfoMapper;
 import com.bin.bin_fresh_recruit_backend.mapper.FreshUserInfoMapper;
-import com.bin.bin_fresh_recruit_backend.model.domain.Account;
-import com.bin.bin_fresh_recruit_backend.model.domain.CompanyInfo;
-import com.bin.bin_fresh_recruit_backend.model.domain.FreshUserInfo;
-import com.bin.bin_fresh_recruit_backend.model.domain.ThemeSetting;
+import com.bin.bin_fresh_recruit_backend.model.domain.*;
 import com.bin.bin_fresh_recruit_backend.model.request.account.AccountGetCodeRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshAddListRequest;
 import com.bin.bin_fresh_recruit_backend.model.request.school.FreshManageRequest;
 import com.bin.bin_fresh_recruit_backend.model.vo.account.AccountInfoVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.fresh.FreshInfoVo;
+import com.bin.bin_fresh_recruit_backend.model.vo.other.IpVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.school.FreshManageVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.FreshUserInfoService;
+import com.bin.bin_fresh_recruit_backend.service.LoginInfoService;
 import com.bin.bin_fresh_recruit_backend.service.ThemeSettingService;
 import com.bin.bin_fresh_recruit_backend.utils.ArrayUtils;
 import com.bin.bin_fresh_recruit_backend.utils.IdUtils;
+import com.bin.bin_fresh_recruit_backend.utils.IpUtil;
 import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
+import eu.bitwalker.useragentutils.UserAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -43,7 +44,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -89,6 +92,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
 
     @Resource
     private ThemeSettingService themeSettingService;
+
+    @Resource
+    private LoginInfoService loginInfoService;
 
     /**
      * 账号注册
@@ -168,8 +174,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
      * @return AccountInfoVo
      */
     @Override
-    public AccountInfoVo accountLogin(Integer loginType, String phone, String password, Integer role, String code) {
-        Account account = null;
+    public AccountInfoVo accountLogin(HttpServletRequest request, Integer loginType, String phone, String password, Integer role, String code, Integer isFilterLately) {
+        Account account;
         switch (loginType) {
             case 0:
                 // 参数校验
@@ -179,10 +185,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
                 accountQueryWrapper.eq("a_password", digestPassword);
                 accountQueryWrapper.eq("a_role", role);
                 account = accountMapper.selectOne(accountQueryWrapper);
-                if (account == null) {
-                    log.info("User login error,phone password or role error");
-                    throw new BusinessException(ErrorCode.LOGIN_ERROR);
-                }
                 break;
             case 1:
                 // 验证手机号是否存在
@@ -195,6 +197,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
                 codeQueryWrapper.eq("a_role", role);
                 codeQueryWrapper.eq("is_delete", NO_DELETE);
                 account = accountMapper.selectOne(codeQueryWrapper);
+                if (account == null) {
+                    log.info("User login error,phone password or role error");
+                    throw new BusinessException(ErrorCode.LOGIN_ERROR);
+                }
                 // 获取验证码并校验
                 String trueCode = redisTemplate.opsForValue().get(LOGIN_VERIFICATION_CODE + account.getAId());
                 if (!code.equals(trueCode)) {
@@ -203,6 +209,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
                 break;
             default:
                 throw new BusinessException(ErrorCode.LOGIN_ERROR, "登录类型错误");
+        }
+        if (account == null) {
+            log.info("User login error,phone password or role error");
+            throw new BusinessException(ErrorCode.LOGIN_ERROR);
         }
         // 记录登录态
         // 生成token
@@ -235,6 +245,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         if ("".equals(userName)) {
             userName = "请完善用户名";
         }
+        // 保存登录信息
+/*        boolean saveInfo = saveLoginInfo(request, account.getAId(), isFilterLately);
+        if (!saveInfo) {
+            throw new BusinessException(ErrorCode.IP_NULL);
+        }*/
         return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token, userName);
     }
 
@@ -549,7 +564,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         boolean batch1 = themeSettingService.saveBatch(themeSettings);
-        if (themeSettings.size()!=0 && !batch1){
+        if (themeSettings.size() != 0 && !batch1) {
             throw new BusinessException(ErrorCode.SQL_ERROR);
         }
         return freshManageVos;
@@ -645,6 +660,46 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         return pageVo;
     }
 
+
+    /**
+     * 保存登录信息
+     *
+     * @param request
+     * @param aId
+     * @return
+     */
+    private boolean saveLoginInfo(HttpServletRequest request, String aId, Integer isFilterLately) {
+        // 获取IP解析结果
+        String ipAddr = IpUtil.getIpAddr(request);
+        IpVo ipVo = IpUtil.getIpVoBaseResponse(ipAddr);
+        // 同一个IP同一天登录不显示
+        Calendar instance = Calendar.getInstance();
+        instance.add(Calendar.DATE, NO_RECORD_LOGIN_DAY);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String day = simpleDateFormat.format(instance.getTime());
+        QueryWrapper<LoginInfo> loginInfoQueryWrapper = new QueryWrapper<>();
+        loginInfoQueryWrapper.eq("a_id", aId);
+        loginInfoQueryWrapper.eq("is_delete", NO_DELETE);
+        loginInfoQueryWrapper.eq("login_ip", ipAddr);
+        loginInfoQueryWrapper.gt("create_time", day);
+        List<LoginInfo> list = loginInfoService.list(loginInfoQueryWrapper);
+        if (isFilterLately == 1 && list != null && list.size() > 0) {
+            return true;
+        }
+        // 保存
+        LoginInfo loginInfo = new LoginInfo();
+        UserAgent userAgent = IpUtil.getUserAgent(request);
+        if (userAgent != null) {
+            loginInfo.setLoginDevice(userAgent.getOperatingSystem().getDeviceType().toString() + " · " + userAgent.getOperatingSystem().getName() + " · " + userAgent.getBrowser().toString());
+        }
+        loginInfo.setAId(aId);
+        loginInfo.setLoginIp(ipAddr);
+        loginInfo.setLoginAddress(ipVo.getAddress());
+        loginInfo.setLoginCountry(ipVo.getCountry());
+        loginInfo.setLoginProvince(ipVo.getProvince());
+        loginInfo.setLoginCity(ipVo.getCity());
+        return loginInfoService.save(loginInfo);
+    }
 }
 
 

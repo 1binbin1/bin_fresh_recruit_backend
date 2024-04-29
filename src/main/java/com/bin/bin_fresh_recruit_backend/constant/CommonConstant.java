@@ -184,4 +184,14 @@ public interface CommonConstant {
      * 验证码登录
      */
     Integer LOGIN_TYPE_CODE = 1;
+
+    /**
+     * 同一天登录不记录
+     */
+    Integer NO_RECORD_LOGIN_DAY = -1;
+
+    /**
+     * 获取登录信息天数
+     */
+    Integer GET_LOGININFO_DAYS = -90;
 }

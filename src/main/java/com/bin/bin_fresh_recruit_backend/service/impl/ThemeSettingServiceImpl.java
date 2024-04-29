@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
-import com.bin.bin_fresh_recruit_backend.mapper.TThemeSettingMapper;
+import com.bin.bin_fresh_recruit_backend.mapper.ThemeSettingMapper;
 import com.bin.bin_fresh_recruit_backend.model.domain.ThemeSetting;
 import com.bin.bin_fresh_recruit_backend.model.vo.theme.ThemeSettingVo;
 import com.bin.bin_fresh_recruit_backend.service.ThemeSettingService;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @createDate 2024-04-25 10:34:55
  */
 @Service
-public class ThemeSettingServiceImpl extends ServiceImpl<TThemeSettingMapper, ThemeSetting>
+public class ThemeSettingServiceImpl extends ServiceImpl<ThemeSettingMapper, ThemeSetting>
         implements ThemeSettingService {
 
     @Override
