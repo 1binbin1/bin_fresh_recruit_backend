@@ -1,5 +1,6 @@
 package com.bin.bin_fresh_recruit_backend.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.IpVo;
@@ -9,19 +10,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.lionsoul.ip2region.xdb.Searcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
+import java.io.InputStreamReader;
 import java.net.*;
+import java.util.Enumeration;
 
 /**
  * @Author: hongxiaobin
@@ -29,9 +26,16 @@ import java.net.*;
  */
 @Slf4j
 public class IpUtil {
+    public static final String UNKNOWN = "未知";
+
+    public static final String IP_URL = "http://whois.pconline.com.cn/ipJson.jsp";
+
     private static final Logger logger = LoggerFactory.getLogger(IpUtil.class);
+
     private static final String LOCAL_IP = "127.0.0.1";
+
     private static Searcher searcher = null;
+
     static {
         try {
             InputStream ris = IpUtil.class.getResourceAsStream("/ip2region/ip2region.xdb");
@@ -267,6 +271,7 @@ public class IpUtil {
 
     /**
      * 根据ip获取 城市信息
+     *
      * @param ipAddress
      * @return
      */
@@ -275,19 +280,20 @@ public class IpUtil {
         try {
             return searcher.search(ipAddress);
         } catch (Exception e) {
-            logger.error("搜索:{} 失败: {}",ipAddress, e);
+            logger.error("搜索:{} 失败: {}", ipAddress, e);
         }
         return null;
     }
 
     /**
      * 根据ip2region解析ip地址
+     *
      * @param ip ip地址
      * @return 解析后的ip地址信息
      */
-    public static String getIp2region(String ip)  {
+    public static String getIp2region(String ip) {
 
-        if(searcher == null){
+        if (searcher == null) {
             logger.error("Error: DbSearcher is null");
             return null;
         }
@@ -310,10 +316,10 @@ public class IpUtil {
      *
      * @return 本地IP地址
      */
-    public static String getHostIp(){
-        try{
+    public static String getHostIp() {
+        try {
             return InetAddress.getLocalHost().getHostAddress();
-        }catch (UnknownHostException e){
+        } catch (UnknownHostException e) {
         }
         return LOCAL_IP;
     }
@@ -324,8 +330,8 @@ public class IpUtil {
      *
      * @return 本地主机名
      */
-    public static String getHostName(){
-        try{
+    public static String getHostName() {
+        try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
         }
@@ -334,10 +340,11 @@ public class IpUtil {
 
     /**
      * 获取设备信息
+     *
      * @param request
      * @return
      */
-    public static UserAgent getUserAgent(HttpServletRequest request){
+    public static UserAgent getUserAgent(HttpServletRequest request) {
         UserAgent userAgent;
         userAgent = UserAgent.parseUserAgentString(request.getHeader("user-agent"));
         return userAgent;
@@ -345,33 +352,107 @@ public class IpUtil {
 
     /**
      * 获取登录状态信息（IP解析）
+     *
      * @param ipAddr ip地址
      * @return 状态信息
      */
-    public static IpVo getIpVoBaseResponse(@RequestParam("ip") String ipAddr) {
-        log.info("获取到IP地址为：{}",ipAddr);
-        String cityInfo;
-        if (!StringUtils.isAnyBlank(ipAddr)) {
-            cityInfo = IpUtil.getIp2region(ipAddr);
+    public static IpVo getIpVoBaseResponse(String ipAddr) {
+        log.info("获取到IP地址为：{}", ipAddr);
+        String cityInfo = "未知";
+        if (StringUtils.isAnyBlank(ipAddr)) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        String region = getIp2region(ipAddr);
+        if (region != null) {
+            cityInfo = region;
+        }
+        JSONObject obj = getRealAddressByIP(ipAddr);
+        log.info("IP={}解析结果为:{}", ipAddr, obj);
+        String country = "未知";
+        String province = "未知";
+        String city = "未知";
+        String addr;
+        if (obj != null) {
+            if ("0".equals(obj.getString("regionCode"))) {
+                country = "中国";
+            } else {
+                country = "海外";
+            }
+            province = obj.getString("pro");
+            city = obj.getString("city");
+        }
+        if ("未知".equals(province) && "未知".equals(city)) {
+            addr = "未知";
+        } else if (!"未知".equals(province) && "未知".equals(city)) {
+            addr = province;
+        } else if ("未知".equals(province) && !"未知".equals(city)) {
+            addr = city;
         } else {
-            throw new BusinessException(ErrorCode.NULL_ERROR);
+            addr = province + " · " + city;
         }
-        if (StringUtils.isAnyBlank(cityInfo)) {
-            throw new BusinessException(ErrorCode.NULL_ERROR);
-        }
-        assert cityInfo != null;
-        String[] strings = cityInfo.split("\\|");
-        if (strings == null || strings.length < 4) {
-            throw new BusinessException(ErrorCode.IP_NULL);
-        }
-        log.info("IP={}解析结果为:{}", ipAddr, cityInfo);
         IpVo ipVo = new IpVo();
         ipVo.setIpAddress(ipAddr);
-        ipVo.setCountry(strings[0]);
-        ipVo.setProvince(strings[1]);
-        ipVo.setCity(strings[2]);
-        ipVo.setAddress(ipVo.getCountry() + "·" + ipVo.getProvince() + "·" + ipVo.getCity());
+        ipVo.setCountry(country);
+        ipVo.setProvince(province);
+        ipVo.setCity(city);
+        ipVo.setAddress(addr);
         ipVo.setCityInfo(cityInfo);
         return ipVo;
+    }
+
+    public static JSONObject getRealAddressByIP(String ip) {
+        // 内网不查询
+        if (ip.equals(LOCAL_IP)) {
+            return null;
+        }
+        try {
+            String rspStr = sendGet(IP_URL, "ip=" + ip + "&json=true", "GBK");
+            if (StringUtils.isEmpty(rspStr)) {
+                log.error("获取地理位置异常 {}", ip);
+                return null;
+            }
+            return JSONObject.parseObject(rspStr);
+        } catch (Exception e) {
+            log.error("获取地理位置异常 {}", ip);
+        }
+        return null;
+    }
+
+    public static String sendGet(String url, String param, String contentType) {
+        StringBuilder result = new StringBuilder();
+        BufferedReader in = null;
+        try {
+            String urlNameString = url + "?" + param;
+            log.info("sendGet - {}", urlNameString);
+            URL realUrl = new URL(urlNameString);
+            URLConnection connection = realUrl.openConnection();
+            connection.setRequestProperty("accept", "*/*");
+            connection.setRequestProperty("connection", "Keep-Alive");
+            connection.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            connection.connect();
+            in = new BufferedReader(new InputStreamReader(connection.getInputStream(), contentType));
+            String line;
+            while ((line = in.readLine()) != null) {
+                result.append(line);
+            }
+            log.info("recv - {}", result);
+        } catch (ConnectException e) {
+            log.error("调用HttpUtils.sendGet ConnectException, url=" + url + ",param=" + param, e);
+        } catch (SocketTimeoutException e) {
+            log.error("调用HttpUtils.sendGet SocketTimeoutException, url=" + url + ",param=" + param, e);
+        } catch (IOException e) {
+            log.error("调用HttpUtils.sendGet IOException, url=" + url + ",param=" + param, e);
+        } catch (Exception e) {
+            log.error("调用HttpsUtil.sendGet Exception, url=" + url + ",param=" + param, e);
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Exception ex) {
+                log.error("调用in.close Exception, url=" + url + ",param=" + param, ex);
+            }
+        }
+        return result.toString();
     }
 }

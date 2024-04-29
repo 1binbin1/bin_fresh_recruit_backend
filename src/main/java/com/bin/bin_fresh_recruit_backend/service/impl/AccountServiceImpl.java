@@ -683,7 +683,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         loginInfoQueryWrapper.eq("login_ip", ipAddr);
         loginInfoQueryWrapper.gt("create_time", day);
         List<LoginInfo> list = loginInfoService.list(loginInfoQueryWrapper);
-        if (isFilterLately == 0 && (list != null && list.size() > 0)) {
+        if ((isFilterLately == 0) && ((list != null) && (list.size() > 0))) {
             return true;
         }
         // 保存
