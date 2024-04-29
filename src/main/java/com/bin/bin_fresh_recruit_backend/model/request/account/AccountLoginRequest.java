@@ -50,6 +50,6 @@ public class AccountLoginRequest implements Serializable {
     /**
      * 是否过滤频繁登录 1-过滤
      */
-    @JsonProperty
+    @JsonProperty("isFilterLately")
     private Integer isFilterLately = 0;
 }
