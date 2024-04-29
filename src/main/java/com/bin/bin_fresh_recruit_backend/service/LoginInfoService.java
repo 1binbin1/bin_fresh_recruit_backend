@@ -14,5 +14,5 @@ import javax.servlet.http.HttpServletRequest;
 */
 public interface LoginInfoService extends IService<LoginInfo> {
 
-    LoginInfoVo<LoginInfoList> getLoginInfo(HttpServletRequest request,Integer role, Integer current, Integer pageSize);
+    LoginInfoVo<LoginInfoList> getLoginInfo(HttpServletRequest request,String aId, Integer current, Integer pageSize);
 }

@@ -5,13 +5,13 @@ import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
 import com.bin.bin_fresh_recruit_backend.common.ResultUtils;
 import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.interceptor.IgnoreAuth;
-import com.bin.bin_fresh_recruit_backend.interceptor.LoginUser;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.IpVo;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.LoginInfoList;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.LoginInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.LoginInfoService;
 import com.bin.bin_fresh_recruit_backend.utils.IpUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,9 +57,9 @@ public class IpController {
      * @param pageSize
      * @return
      */
-    @LoginUser
+    @IgnoreAuth
     @GetMapping("/getLogin")
-    public BaseResponse<LoginInfoVo<LoginInfoList>> getLoginInfo(HttpServletRequest request, @RequestParam("role") Integer role,@RequestParam("current") Integer current, @RequestParam("page_size") Integer pageSize) {
+    public BaseResponse<LoginInfoVo<LoginInfoList>> getLoginInfo(HttpServletRequest request, @RequestParam("a_id") String aId, @RequestParam("current") Integer current, @RequestParam("page_size") Integer pageSize) {
         if (current == 0) {
             current = 1;
         }
@@ -69,10 +69,10 @@ public class IpController {
         if (request == null) {
             throw new BusinessException(ErrorCode.NO_LOGIN);
         }
-        if ((SCHOOL_ROLE != role) && (FRESH_ROLE != role) && (COMPANY_ROLE != role)) {
-            throw new BusinessException(ErrorCode.ROLE_ERROR);
+        if (StringUtils.isAnyBlank(aId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginInfoVo<LoginInfoList> result = loginInfoService.getLoginInfo(request, role, current, pageSize);
+        LoginInfoVo<LoginInfoList> result = loginInfoService.getLoginInfo(request, aId, current, pageSize);
         return ResultUtils.success(result);
     }
 }

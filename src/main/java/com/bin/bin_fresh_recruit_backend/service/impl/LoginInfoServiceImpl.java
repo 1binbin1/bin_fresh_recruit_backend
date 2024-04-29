@@ -3,17 +3,13 @@ package com.bin.bin_fresh_recruit_backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bin.bin_fresh_recruit_backend.common.ErrorCode;
-import com.bin.bin_fresh_recruit_backend.exception.BusinessException;
 import com.bin.bin_fresh_recruit_backend.mapper.LoginInfoMapper;
-import com.bin.bin_fresh_recruit_backend.model.domain.Account;
 import com.bin.bin_fresh_recruit_backend.model.domain.LoginInfo;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.LoginInfoList;
 import com.bin.bin_fresh_recruit_backend.model.vo.other.LoginInfoVo;
 import com.bin.bin_fresh_recruit_backend.service.AccountService;
 import com.bin.bin_fresh_recruit_backend.service.LoginInfoService;
 import com.bin.bin_fresh_recruit_backend.utils.IpUtil;
-import com.bin.bin_fresh_recruit_backend.utils.LoginIdUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -47,12 +43,7 @@ public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo
      * @return
      */
     @Override
-    public LoginInfoVo<LoginInfoList> getLoginInfo(HttpServletRequest request, Integer role, Integer current, Integer pageSize) {
-        Account loginInfo = accountService.getLoginInfo(request, LoginIdUtils.getSessionId(role));
-        if (loginInfo == null) {
-            throw new BusinessException(ErrorCode.NO_LOGIN);
-        }
-        String aId = loginInfo.getAId();
+    public LoginInfoVo<LoginInfoList> getLoginInfo(HttpServletRequest request, String aId, Integer current, Integer pageSize) {
         Calendar instance = Calendar.getInstance();
         instance.add(Calendar.DATE, GET_LOGININFO_DAYS);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -73,7 +64,10 @@ public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo
         infoQueryWrapper.eq("login_ip", ipAddr);
         long successCount = this.count(infoQueryWrapper);
         // 计算占比（转为正整数）
-        Integer ceil = (int) Math.ceil(((double) successCount / count) * 100);
+        int ceil = 0;
+        if (count != 0) {
+            ceil = (int) Math.ceil(((double) successCount / count) * 100);
+        }
         LoginInfoVo<LoginInfoList> result = new LoginInfoVo<>();
         result.setScore(ceil);
         result.setAId(aId);

@@ -246,10 +246,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
             userName = "请完善用户名";
         }
         // 保存登录信息
-/*        boolean saveInfo = saveLoginInfo(request, account.getAId(), isFilterLately);
+        boolean saveInfo = saveLoginInfo(request, account.getAId(), isFilterLately);
         if (!saveInfo) {
             throw new BusinessException(ErrorCode.IP_NULL);
-        }*/
+        }
         return new AccountInfoVo(account.getAId(), account.getAPhone(), account.getAAvatar(), token, userName);
     }
 
@@ -683,7 +683,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account>
         loginInfoQueryWrapper.eq("login_ip", ipAddr);
         loginInfoQueryWrapper.gt("create_time", day);
         List<LoginInfo> list = loginInfoService.list(loginInfoQueryWrapper);
-        if (isFilterLately == 1 && list != null && list.size() > 0) {
+        if (isFilterLately == 0 && (list != null && list.size() > 0)) {
             return true;
         }
         // 保存
