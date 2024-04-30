@@ -34,7 +34,10 @@ public class RedissonConfig {
         config.useSingleServer()
                 .setAddress(redisAddress)
                 .setDatabase(Integer.parseInt(redissonDataBase))
-                .setPassword(password);
+                .setPassword(password)
+                .setTimeout(60000)
+                .setConnectTimeout(60000)
+                .setKeepAlive(true);
 
         // 2. 创建实例
         // Sync and Async API
