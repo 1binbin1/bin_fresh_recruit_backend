@@ -71,7 +71,7 @@ public class SchoolRateController {
     /**
      * 应届生分段数量
      *
-     * @param request
+     * @param schoolId
      * @return
      */
     @IgnoreAuth

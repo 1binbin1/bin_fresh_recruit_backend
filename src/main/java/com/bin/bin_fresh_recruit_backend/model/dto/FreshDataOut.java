@@ -66,14 +66,14 @@ public class FreshDataOut {
     private String comName;
 
     /**
-     * 投递时间
-     */
-    @TableField(value = "send_time")
-    private Date sendTime;
-
-    /**
      * 投递状态 0-已投递 1-被查看 2-邀约面试 3-初筛不通过 4-流程结束
      */
     @TableField(value = "send_state")
     private Integer sendState;
+
+    /**
+     * 投递时间
+     */
+    @TableField(value = "send_time")
+    private Date sendTime;
 }
