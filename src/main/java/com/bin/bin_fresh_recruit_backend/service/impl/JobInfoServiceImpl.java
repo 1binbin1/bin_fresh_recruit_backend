@@ -418,6 +418,10 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
             comJobInfoVo.setComName(companyInfoHashMap.get(jobInfo.getComId()).getComName());
             result.add(comJobInfoVo);
         }
+        // 结果打乱
+        if (result != null) {
+            Collections.shuffle(result);
+        }
         return result;
     }
 
