@@ -478,6 +478,9 @@ public class JobInfoServiceImpl extends ServiceImpl<JobInfoMapper, JobInfo>
                 count++;
             }
             // 批量添加
+            if (batchJobs == null || batchJobs.size() == 0){
+                return file.getOriginalFilename();
+            }
             boolean batch = this.saveBatch(batchJobs);
             if (!batch) {
                 throw new BusinessException(ErrorCode.SQL_ERROR);
